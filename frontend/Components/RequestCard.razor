@@ -1,0 +1,247 @@
+@*
+    Reusable request card component
+    Displays a maintenance request summary with key information
+*@
+@using frontend.Models
+
+<div class="request-card" @onclick="HandleClick">
+    <div class="request-card-header">
+        <div class="request-title">
+            <h3>@Request.Title</h3>
+            <span class="request-id">#@Request.Id</span>
+        </div>
+        <div class="request-badges">
+            <StatusBadge Status="@Request.Status" />
+            <PriorityBadge Priority="@Request.Priority" />
+        </div>
+    </div>
+
+    <div class="request-card-body">
+        <p class="request-description">@GetTruncatedDescription()</p>
+
+        <div class="request-meta">
+            <div class="meta-item">
+                <span class="meta-label">Type:</span>
+                <span class="meta-value">@Request.RequestType</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">Category:</span>
+                <span class="meta-value">@Request.Category</span>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Request.TechnicianName))
+        {
+            <div class="request-assignment">
+                <span class="assignment-icon">👤</span>
+                <span class="assignment-text">Assigned to @Request.TechnicianName</span>
+            </div>
+        }
+        else
+        {
+            <div class="request-assignment unassigned">
+                <span class="assignment-icon">⚠️</span>
+                <span class="assignment-text">Unassigned</span>
+            </div>
+        }
+    </div>
+
+    <div class="request-card-footer">
+        <span class="request-date">
+            Created: @Request.CreatedAt.ToString("MMM dd, yyyy")
+        </span>
+        @if (ShowViewButton)
+        {
+            <button class="btn-view" @onclick:stopPropagation="true" @onclick="HandleClick">
+                View Details →
+            </button>
+        }
+    </div>
+</div>
+
+<style>
+    .request-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 2px solid transparent;
+    }
+
+    .request-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        border-color: #4f46e5;
+    }
+
+    .request-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 16px;
+        gap: 16px;
+    }
+
+    .request-title {
+        flex: 1;
+    }
+
+    .request-title h3 {
+        margin: 0 0 4px 0;
+        color: #1f2937;
+        font-size: 18px;
+        font-weight: 600;
+        line-height: 1.4;
+    }
+
+    .request-id {
+        color: #6b7280;
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    .request-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .request-card-body {
+        margin-bottom: 16px;
+    }
+
+    .request-description {
+        color: #4b5563;
+        font-size: 14px;
+        line-height: 1.6;
+        margin-bottom: 12px;
+    }
+
+    .request-meta {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        gap: 6px;
+        font-size: 13px;
+    }
+
+    .meta-label {
+        color: #6b7280;
+        font-weight: 600;
+    }
+
+    .meta-value {
+        color: #374151;
+        text-transform: capitalize;
+    }
+
+    .request-assignment {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background-color: #dbeafe;
+        color: #1e40af;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    .request-assignment.unassigned {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+
+    .assignment-icon {
+        font-size: 14px;
+    }
+
+    .request-card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 16px;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .request-date {
+        color: #6b7280;
+        font-size: 13px;
+    }
+
+    .btn-view {
+        background-color: #4f46e5;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-view:hover {
+        background-color: #4338ca;
+    }
+
+    /* Responsive design */
+    @@media (max-width: 640px) {
+        .request-card-header {
+            flex-direction: column;
+        }
+
+        .request-badges {
+            width: 100%;
+        }
+
+        .request-card-footer {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .btn-view {
+            width: 100%;
+        }
+    }
+</style>
+
+@code {
+    [Parameter]
+    public RequestModel Request { get; set; } = new();
+
+    [Parameter]
+    public bool ShowViewButton { get; set; } = true;
+
+    [Parameter]
+    public EventCallback<int> OnClick { get; set; }
+
+    private string GetTruncatedDescription()
+    {
+        if (string.IsNullOrEmpty(Request.Description))
+            return "No description provided";
+
+        const int maxLength = 150;
+        if (Request.Description.Length <= maxLength)
+            return Request.Description;
+
+        return Request.Description.Substring(0, maxLength) + "...";
+    }
+
+    private async Task HandleClick()
+    {
+        if (OnClick.HasDelegate)
+        {
+            await OnClick.InvokeAsync(Request.Id);
+        }
+    }
+}

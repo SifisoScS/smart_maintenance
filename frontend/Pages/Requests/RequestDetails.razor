@@ -1,0 +1,856 @@
+@page "/requests/{id:int}"
+@using frontend.Models
+@using frontend.Services.Interfaces
+@inject IApiService ApiService
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+@inject IToastService ToastService
+
+<PageTitle>Request Details - Smart Maintenance</PageTitle>
+
+<div class="request-details-container">
+    @if (isLoading)
+    {
+        <div class="loading-container">
+            <div class="spinner-border" role="status"></div>
+            <p>Loading request details...</p>
+        </div>
+    }
+    else if (request == null)
+    {
+        <div class="error-container">
+            <h3>Request Not Found</h3>
+            <p>The requested maintenance request could not be found.</p>
+            <button class="btn btn-primary" @onclick="@(() => Navigation.NavigateTo("/requests"))">
+                Back to Requests
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="details-header">
+            <div class="header-left">
+                <button class="btn btn-secondary btn-sm" @onclick="@(() => Navigation.NavigateTo("/requests"))">
+                    ← Back to Requests
+                </button>
+                <h2>Request #@request.Id</h2>
+            </div>
+            <div class="header-right">
+                <span class="badge badge-@GetStatusColor(request.Status)">@request.Status</span>
+                <span class="badge badge-@GetPriorityColor(request.Priority)">@request.Priority Priority</span>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger" role="alert">
+                <strong>⚠️ Error:</strong> @errorMessage
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <div class="alert alert-success" role="alert">
+                <strong>✓ Success:</strong> @successMessage
+            </div>
+        }
+
+        <div class="details-grid">
+            <!-- Main Information Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>Request Information</h3>
+                </div>
+                <div class="card-body">
+                    <div class="info-row">
+                        <span class="label">Title:</span>
+                        <span class="value">@request.Title</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Description:</span>
+                        <span class="value">@request.Description</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Type:</span>
+                        <span class="value">@request.RequestType</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Category:</span>
+                        <span class="value">@request.Category</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Created:</span>
+                        <span class="value">@request.CreatedAt.ToString("MMM dd, yyyy h:mm tt")</span>
+                    </div>
+                    @if (request.UpdatedAt.HasValue)
+                    {
+                        <div class="info-row">
+                            <span class="label">Last Updated:</span>
+                            <span class="value">@request.UpdatedAt.Value.ToString("MMM dd, yyyy h:mm tt")</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Client & Asset Information Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>Client & Asset</h3>
+                </div>
+                <div class="card-body">
+                    <div class="info-row">
+                        <span class="label">Client:</span>
+                        <span class="value">@request.ClientName</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(request.AssetName))
+                    {
+                        <div class="info-row">
+                            <span class="label">Asset:</span>
+                            <span class="value">@request.AssetName (@request.AssetCode)</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="info-row">
+                            <span class="label">Asset:</span>
+                            <span class="value text-muted">Not specified</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Assignment Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>Assignment</h3>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(request.TechnicianName))
+                    {
+                        <div class="info-row">
+                            <span class="label">Assigned To:</span>
+                            <span class="value">@request.TechnicianName</span>
+                        </div>
+                        @if (request.AssignedAt.HasValue)
+                        {
+                            <div class="info-row">
+                                <span class="label">Assigned On:</span>
+                                <span class="value">@request.AssignedAt.Value.ToString("MMM dd, yyyy h:mm tt")</span>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="info-row">
+                            <span class="label">Status:</span>
+                            <span class="value text-muted">Unassigned</span>
+                        </div>
+
+                        @if (currentUser?.Role == "admin" && request.Status == "pending")
+                        {
+                            <button class="btn btn-primary btn-sm mt-2" @onclick="ShowAssignModal">
+                                Assign Technician
+                            </button>
+                        }
+                    }
+                </div>
+            </div>
+
+            <!-- Status Actions Card -->
+            @if (CanUpdateStatus())
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Update Status</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="status-actions">
+                            @if (request.Status == "assigned" && (currentUser?.Role == "technician" || currentUser?.Role == "admin"))
+                            {
+                                <button class="btn btn-info" @onclick="StartWork" disabled="@isUpdating">
+                                    Start Work
+                                </button>
+                            }
+
+                            @if (request.Status == "in_progress" && (currentUser?.Role == "technician" || currentUser?.Role == "admin"))
+                            {
+                                <button class="btn btn-success" @onclick="ShowCompleteModal" disabled="@isUpdating">
+                                    Complete Request
+                                </button>
+                            }
+
+                            @if (currentUser?.Role == "admin")
+                            {
+                                <button class="btn btn-warning" @onclick="ShowCancelModal" disabled="@isUpdating">
+                                    Cancel Request
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Assignment Modal -->
+        @if (showAssignModal && technicians != null)
+        {
+            <div class="modal-overlay" @onclick="HideAssignModal">
+                <div class="modal-content" @onclick:stopPropagation="true">
+                    <div class="modal-header">
+                        <h3>Assign Technician</h3>
+                        <button class="btn-close" @onclick="HideAssignModal">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="technicianSelect">Select Technician</label>
+                            <select id="technicianSelect" @bind="selectedTechnicianId" class="form-control">
+                                <option value="0">-- Select a technician --</option>
+                                @foreach (var tech in technicians)
+                                {
+                                    <option value="@tech.Id">@tech.FullName (@tech.Email)</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" @onclick="HideAssignModal">Cancel</button>
+                        <button class="btn btn-primary" @onclick="AssignTechnician" disabled="@(isUpdating || selectedTechnicianId == 0)">
+                            Assign
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Complete Modal -->
+        @if (showCompleteModal)
+        {
+            <div class="modal-overlay" @onclick="HideCompleteModal">
+                <div class="modal-content" @onclick:stopPropagation="true">
+                    <div class="modal-header">
+                        <h3>Complete Request</h3>
+                        <button class="btn-close" @onclick="HideCompleteModal">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="resolutionNotes">Resolution Notes</label>
+                            <textarea id="resolutionNotes" @bind="resolutionNotes" class="form-control" rows="4" placeholder="Describe the work completed..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" @onclick="HideCompleteModal">Cancel</button>
+                        <button class="btn btn-success" @onclick="CompleteRequest" disabled="@(isUpdating || string.IsNullOrWhiteSpace(resolutionNotes))">
+                            Complete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Cancel Modal -->
+        @if (showCancelModal)
+        {
+            <div class="modal-overlay" @onclick="HideCancelModal">
+                <div class="modal-content" @onclick:stopPropagation="true">
+                    <div class="modal-header">
+                        <h3>Cancel Request</h3>
+                        <button class="btn-close" @onclick="HideCancelModal">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to cancel this request?</p>
+                        <div class="form-group">
+                            <label for="cancelReason">Cancellation Reason</label>
+                            <textarea id="cancelReason" @bind="cancelReason" class="form-control" rows="3" placeholder="Reason for cancellation..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" @onclick="HideCancelModal">No, Keep It</button>
+                        <button class="btn btn-danger" @onclick="CancelRequest" disabled="@isUpdating">
+                            Yes, Cancel Request
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+<style>
+    .request-details-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 400px;
+        color: #6b7280;
+    }
+
+    .error-container {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .error-container h3 {
+        color: #dc2626;
+        margin-bottom: 16px;
+    }
+
+    .details-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .header-left h2 {
+        margin: 0;
+        color: #1f2937;
+        font-size: 28px;
+    }
+
+    .header-right {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    .card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 16px 20px;
+    }
+
+    .card-header h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .card-body {
+        padding: 20px;
+    }
+
+    .info-row {
+        display: flex;
+        margin-bottom: 16px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .info-row:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .info-row .label {
+        font-weight: 600;
+        color: #374151;
+        min-width: 130px;
+        flex-shrink: 0;
+    }
+
+    .info-row .value {
+        color: #6b7280;
+        flex-grow: 1;
+    }
+
+    .text-muted {
+        font-style: italic;
+        color: #9ca3af !important;
+    }
+
+    .badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .badge-pending { background-color: #fef3c7; color: #92400e; }
+    .badge-assigned { background-color: #dbeafe; color: #1e40af; }
+    .badge-in_progress { background-color: #e0e7ff; color: #4338ca; }
+    .badge-completed { background-color: #d1fae5; color: #065f46; }
+    .badge-cancelled { background-color: #fee2e2; color: #991b1b; }
+    .badge-low { background-color: #e5e7eb; color: #374151; }
+    .badge-medium { background-color: #fed7aa; color: #9a3412; }
+    .badge-high { background-color: #fecaca; color: #991b1b; }
+
+    .status-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-sm {
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+
+    .btn-primary { background-color: #4f46e5; color: white; }
+    .btn-primary:hover:not(:disabled) { background-color: #4338ca; }
+
+    .btn-secondary { background-color: #6b7280; color: white; }
+    .btn-secondary:hover:not(:disabled) { background-color: #4b5563; }
+
+    .btn-success { background-color: #10b981; color: white; }
+    .btn-success:hover:not(:disabled) { background-color: #059669; }
+
+    .btn-info { background-color: #3b82f6; color: white; }
+    .btn-info:hover:not(:disabled) { background-color: #2563eb; }
+
+    .btn-warning { background-color: #f59e0b; color: white; }
+    .btn-warning:hover:not(:disabled) { background-color: #d97706; }
+
+    .btn-danger { background-color: #ef4444; color: white; }
+    .btn-danger:hover:not(:disabled) { background-color: #dc2626; }
+
+    .btn:disabled {
+        background-color: #9ca3af;
+        cursor: not-allowed;
+    }
+
+    .mt-2 { margin-top: 8px; }
+
+    .alert {
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+
+    .alert-danger {
+        background-color: #fef2f2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+
+    .alert-success {
+        background-color: #f0fdf4;
+        color: #065f46;
+        border: 1px solid #bbf7d0;
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 20px;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 12px;
+        max-width: 500px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        color: #1f2937;
+        font-size: 20px;
+    }
+
+    .btn-close {
+        background: none;
+        border: none;
+        font-size: 28px;
+        cursor: pointer;
+        color: #6b7280;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+    }
+
+    .btn-close:hover {
+        background-color: #f3f4f6;
+        color: #1f2937;
+    }
+
+    .modal-body {
+        padding: 20px;
+    }
+
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        padding: 20px;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #374151;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px 12px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.2s;
+        box-sizing: border-box;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .spinner-border {
+        width: 2rem;
+        height: 2rem;
+        border: 3px solid #e5e7eb;
+        border-right-color: #4f46e5;
+        border-radius: 50%;
+        animation: spinner-border 0.75s linear infinite;
+        margin-bottom: 16px;
+    }
+
+    @@keyframes spinner-border {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Responsive design */
+    @@media (max-width: 768px) {
+        .details-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .header-left {
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
+        }
+
+        .header-right {
+            width: 100%;
+        }
+
+        .details-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private RequestModel? request;
+    private UserModel? currentUser;
+    private List<UserModel>? technicians;
+
+    private bool isLoading = true;
+    private bool isUpdating = false;
+    private string errorMessage = string.Empty;
+    private string successMessage = string.Empty;
+
+    // Assignment modal
+    private bool showAssignModal = false;
+    private int selectedTechnicianId = 0;
+
+    // Complete modal
+    private bool showCompleteModal = false;
+    private string resolutionNotes = string.Empty;
+
+    // Cancel modal
+    private bool showCancelModal = false;
+    private string cancelReason = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        errorMessage = string.Empty;
+
+        try
+        {
+            currentUser = await AuthService.GetCurrentUserAsync();
+
+            if (currentUser == null)
+            {
+                Navigation.NavigateTo("/login");
+                return;
+            }
+
+            // Load request details
+            request = await ApiService.GetRequestByIdAsync(Id);
+
+            if (request == null)
+            {
+                errorMessage = "Request not found";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading request: {ex.Message}";
+            Console.WriteLine($"LoadData error: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private bool CanUpdateStatus()
+    {
+        if (currentUser == null || request == null) return false;
+
+        // Admins can always update
+        if (currentUser.Role == "admin") return true;
+
+        // Technicians can update if assigned to them
+        if (currentUser.Role == "technician" && request.TechnicianId == currentUser.Id)
+        {
+            return request.Status == "assigned" || request.Status == "in_progress";
+        }
+
+        return false;
+    }
+
+    private string GetStatusColor(string status)
+    {
+        return status.ToLower() switch
+        {
+            "pending" => "pending",
+            "assigned" => "assigned",
+            "in_progress" => "in_progress",
+            "completed" => "completed",
+            "cancelled" => "cancelled",
+            _ => "pending"
+        };
+    }
+
+    private string GetPriorityColor(string priority)
+    {
+        return priority.ToLower() switch
+        {
+            "high" => "high",
+            "medium" => "medium",
+            "low" => "low",
+            _ => "low"
+        };
+    }
+
+    // Assignment methods
+    private async Task ShowAssignModal()
+    {
+        try
+        {
+            technicians = await ApiService.GetTechniciansAsync();
+            showAssignModal = true;
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Error loading technicians: {ex.Message}");
+        }
+    }
+
+    private void HideAssignModal()
+    {
+        showAssignModal = false;
+        selectedTechnicianId = 0;
+    }
+
+    private async Task AssignTechnician()
+    {
+        if (selectedTechnicianId == 0) return;
+
+        isUpdating = true;
+        errorMessage = string.Empty;
+
+        try
+        {
+            var dto = new AssignRequestDto { TechnicianId = selectedTechnicianId };
+            await ApiService.AssignRequestAsync(Id, dto);
+
+            successMessage = "Technician assigned successfully";
+            ToastService.ShowSuccess(successMessage);
+            HideAssignModal();
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error assigning technician: {ex.Message}";
+            ToastService.ShowError(errorMessage);
+        }
+        finally
+        {
+            isUpdating = false;
+        }
+    }
+
+    // Status update methods
+    private async Task StartWork()
+    {
+        isUpdating = true;
+        errorMessage = string.Empty;
+
+        try
+        {
+            await ApiService.StartWorkAsync(Id);
+            successMessage = "Work started successfully";
+            ToastService.ShowSuccess(successMessage);
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error starting work: {ex.Message}";
+            ToastService.ShowError(errorMessage);
+        }
+        finally
+        {
+            isUpdating = false;
+        }
+    }
+
+    private void ShowCompleteModal()
+    {
+        showCompleteModal = true;
+    }
+
+    private void HideCompleteModal()
+    {
+        showCompleteModal = false;
+        resolutionNotes = string.Empty;
+    }
+
+    private async Task CompleteRequest()
+    {
+        if (string.IsNullOrWhiteSpace(resolutionNotes)) return;
+
+        isUpdating = true;
+        errorMessage = string.Empty;
+
+        try
+        {
+            var dto = new CompleteRequestDto { ResolutionNotes = resolutionNotes };
+            await ApiService.CompleteRequestAsync(Id, dto);
+
+            successMessage = "Request completed successfully";
+            ToastService.ShowSuccess(successMessage);
+            HideCompleteModal();
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error completing request: {ex.Message}";
+            ToastService.ShowError(errorMessage);
+        }
+        finally
+        {
+            isUpdating = false;
+        }
+    }
+
+    private void ShowCancelModal()
+    {
+        showCancelModal = true;
+    }
+
+    private void HideCancelModal()
+    {
+        showCancelModal = false;
+        cancelReason = string.Empty;
+    }
+
+    private void CancelRequest()
+    {
+        isUpdating = true;
+        errorMessage = string.Empty;
+
+        try
+        {
+            // Note: Backend doesn't have cancel endpoint, so we'll use a workaround
+            // You may need to add this endpoint to the backend
+            ToastService.ShowWarning("Cancel functionality needs backend implementation");
+            HideCancelModal();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error cancelling request: {ex.Message}";
+            ToastService.ShowError(errorMessage);
+        }
+        finally
+        {
+            isUpdating = false;
+        }
+    }
+}

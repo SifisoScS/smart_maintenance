@@ -1,0 +1,62 @@
+@*
+    Reusable status badge component
+    Displays request status with appropriate color coding
+*@
+
+<span class="status-badge status-@GetStatusClass()">
+    @Status
+</span>
+
+<style>
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        display: inline-block;
+    }
+
+    .status-pending {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-assigned {
+        background-color: #dbeafe;
+        color: #1e40af;
+    }
+
+    .status-in_progress {
+        background-color: #e0e7ff;
+        color: #4338ca;
+    }
+
+    .status-completed {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-cancelled {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public string Status { get; set; } = string.Empty;
+
+    private string GetStatusClass()
+    {
+        return Status.ToLower() switch
+        {
+            "pending" => "pending",
+            "assigned" => "assigned",
+            "in_progress" => "in_progress",
+            "completed" => "completed",
+            "cancelled" => "cancelled",
+            _ => "pending"
+        };
+    }
+}

@@ -1,0 +1,414 @@
+@page "/register"
+@using frontend.Models
+@using frontend.Services.Interfaces
+@using System.Linq
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+@inject IToastService ToastService
+
+<PageTitle>Register - Smart Maintenance</PageTitle>
+
+<div class="register-container">
+    <div class="register-card">
+        <div class="register-header">
+            <h2>🔧 Smart Maintenance</h2>
+            <p class="subtitle">Create your account</p>
+        </div>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger" role="alert">
+                <strong>⚠️ Error:</strong> @errorMessage
+            </div>
+        }
+
+        <EditForm Model="@registerRequest" OnValidSubmit="HandleRegister">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="validation-summary" />
+
+            <div class="form-group">
+                <label for="firstName">First Name</label>
+                <InputText id="firstName"
+                          @bind-Value="registerRequest.FirstName"
+                          class="form-control"
+                          placeholder="John"
+                          disabled="@isLoading" />
+                <ValidationMessage For="@(() => registerRequest.FirstName)" class="text-danger" />
+            </div>
+
+            <div class="form-group">
+                <label for="lastName">Last Name</label>
+                <InputText id="lastName"
+                          @bind-Value="registerRequest.LastName"
+                          class="form-control"
+                          placeholder="Doe"
+                          disabled="@isLoading" />
+                <ValidationMessage For="@(() => registerRequest.LastName)" class="text-danger" />
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <InputText id="email"
+                          type="email"
+                          @bind-Value="registerRequest.Email"
+                          class="form-control"
+                          placeholder="john@example.com"
+                          disabled="@isLoading" />
+                <ValidationMessage For="@(() => registerRequest.Email)" class="text-danger" />
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <InputText id="password"
+                          type="password"
+                          @bind-Value="registerRequest.Password"
+                          class="form-control"
+                          placeholder="Enter your password"
+                          disabled="@isLoading" />
+                <ValidationMessage For="@(() => registerRequest.Password)" class="text-danger" />
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <InputText id="confirmPassword"
+                          type="password"
+                          @bind-Value="confirmPassword"
+                          class="form-control"
+                          placeholder="Re-enter your password"
+                          disabled="@isLoading" />
+                @if (!string.IsNullOrEmpty(confirmPassword) && confirmPassword != registerRequest.Password)
+                {
+                    <small class="text-danger">Passwords do not match</small>
+                }
+            </div>
+
+            <div class="form-group">
+                <label for="role">Account Type</label>
+                <InputSelect id="role"
+                            @bind-Value="registerRequest.Role"
+                            class="form-control"
+                            disabled="@isLoading">
+                    <option value="client">Client - Submit maintenance requests</option>
+                    <option value="technician">Technician - Handle maintenance tasks</option>
+                    <option value="admin">Admin - Full system access</option>
+                </InputSelect>
+                <ValidationMessage For="@(() => registerRequest.Role)" class="text-danger" />
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" disabled="@isLoading">
+                @if (isLoading)
+                {
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span> Creating account...</span>
+                }
+                else
+                {
+                    <span>Create Account</span>
+                }
+            </button>
+        </EditForm>
+
+        <div class="register-footer">
+            <p>Already have an account? <a href="/login" class="link">Sign In</a></p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .register-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+    }
+
+    .register-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        padding: 40px;
+        max-width: 500px;
+        width: 100%;
+    }
+
+    .register-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .register-header h2 {
+        color: #1f2937;
+        margin-bottom: 8px;
+        font-size: 28px;
+        font-weight: 700;
+    }
+
+    .subtitle {
+        color: #6b7280;
+        font-size: 16px;
+        margin: 0;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #374151;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.2s;
+        box-sizing: border-box;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .form-control:disabled {
+        background-color: #f9fafb;
+        cursor: not-allowed;
+    }
+
+    .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-primary {
+        background-color: #4f46e5;
+        color: white;
+        width: 100%;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        background-color: #4338ca;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+    }
+
+    .btn-primary:disabled {
+        background-color: #9ca3af;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .btn-block {
+        width: 100%;
+        display: block;
+    }
+
+    .alert {
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+
+    .alert-danger {
+        background-color: #fef2f2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+
+    .text-danger {
+        color: #dc2626;
+        font-size: 12px;
+        margin-top: 4px;
+        display: block;
+    }
+
+    .validation-summary {
+        background-color: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 20px;
+        color: #991b1b;
+        font-size: 14px;
+    }
+
+    .register-footer {
+        text-align: center;
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .register-footer p {
+        color: #6b7280;
+        font-size: 14px;
+        margin: 0;
+    }
+
+    .link {
+        color: #4f46e5;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .link:hover {
+        color: #4338ca;
+        text-decoration: underline;
+    }
+
+    .spinner-border {
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid currentColor;
+        border-right-color: transparent;
+        border-radius: 50%;
+        display: inline-block;
+        animation: spinner-border 0.75s linear infinite;
+        margin-right: 8px;
+    }
+
+    .spinner-border-sm {
+        width: 0.875rem;
+        height: 0.875rem;
+        border-width: 0.2em;
+    }
+
+    @@keyframes spinner-border {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* Responsive design */
+    @@media (max-width: 640px) {
+        .register-card {
+            padding: 30px 20px;
+        }
+
+        .register-header h2 {
+            font-size: 24px;
+        }
+    }
+</style>
+
+@code {
+    private RegisterRequest registerRequest = new();
+    private string confirmPassword = string.Empty;
+    private bool isLoading = false;
+    private string errorMessage = string.Empty;
+
+    private async Task HandleRegister()
+    {
+        // Clear previous errors
+        errorMessage = string.Empty;
+
+        // Validate passwords match
+        if (registerRequest.Password != confirmPassword)
+        {
+            errorMessage = "Passwords do not match";
+            return;
+        }
+
+        // Validate password strength (backend requires 8-100 chars)
+        if (registerRequest.Password.Length < 8)
+        {
+            errorMessage = "Password must be at least 8 characters long";
+            return;
+        }
+
+        if (registerRequest.Password.Length > 100)
+        {
+            errorMessage = "Password must not exceed 100 characters";
+            return;
+        }
+
+        // Validate email format (basic)
+        if (!registerRequest.Email.Contains("@") || !registerRequest.Email.Contains("."))
+        {
+            errorMessage = "Please enter a valid email address";
+            return;
+        }
+
+        // Validate first name
+        if (string.IsNullOrWhiteSpace(registerRequest.FirstName))
+        {
+            errorMessage = "First name is required";
+            return;
+        }
+
+        // Validate last name
+        if (string.IsNullOrWhiteSpace(registerRequest.LastName))
+        {
+            errorMessage = "Last name is required";
+            return;
+        }
+
+        try
+        {
+            isLoading = true;
+
+            // Call the register service
+            var response = await AuthService.RegisterAsync(registerRequest);
+
+            if (response.Success)
+            {
+                // Show success message
+                ToastService.ShowSuccess("Account created successfully! Please sign in.");
+
+                // Redirect to login page
+                Navigation.NavigateTo("/login");
+            }
+            else
+            {
+                // Show error message from backend with details
+                if (response.Error?.Details != null && response.Error.Details.Any())
+                {
+                    // Build detailed error message from validation details
+                    var details = string.Join(", ", response.Error.Details
+                        .SelectMany(d => d.Value.Select(v => $"{d.Key}: {v}")));
+                    errorMessage = $"{response.Error.Message}. {details}";
+                }
+                else
+                {
+                    errorMessage = response.Error?.Message ?? response.Message ?? "Registration failed. Please try again.";
+                }
+
+                ToastService.ShowError(errorMessage);
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An error occurred while creating your account. Please try again.";
+            ToastService.ShowError(errorMessage);
+            Console.WriteLine($"Registration error: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        // Set default role to client
+        registerRequest.Role = "client";
+    }
+}

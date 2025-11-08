@@ -1,0 +1,194 @@
+﻿@page "/"
+@using frontend.Services.Interfaces
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Smart Maintenance</PageTitle>
+
+<div class="welcome-container">
+    <div class="welcome-card">
+        <h1>🔧 Smart Maintenance System</h1>
+        <p class="subtitle">Streamline your maintenance operations</p>
+
+        @if (isLoading)
+        {
+            <div class="text-center">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        }
+        else if (isAuthenticated)
+        {
+            <div class="authenticated-message">
+                <p>✅ You're logged in as <strong>@currentUser?.FullName</strong></p>
+                <p>Role: <span class="badge">@currentUser?.Role</span></p>
+                <button class="btn btn-primary" @onclick="GoToDashboard">Go to Dashboard</button>
+            </div>
+        }
+        else
+        {
+            <div class="unauthenticated-message">
+                <p>Please sign in to access your maintenance dashboard</p>
+                <div class="button-group">
+                    <button class="btn btn-primary" @onclick="GoToLogin">Sign In</button>
+                    <button class="btn btn-secondary" @onclick="GoToRegister">Register</button>
+                </div>
+            </div>
+        }
+
+        <div class="features">
+            <h3>Features</h3>
+            <ul>
+                <li>📋 Submit and track maintenance requests</li>
+                <li>👥 Role-based access (Admin, Technician, Client)</li>
+                <li>🏗️ Asset management and tracking</li>
+                <li>📊 Real-time status updates</li>
+                <li>🔔 Notification system</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<style>
+    .welcome-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 80vh;
+        padding: 20px;
+    }
+
+    .welcome-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 40px;
+        max-width: 600px;
+        width: 100%;
+        text-align: center;
+    }
+
+    .welcome-card h1 {
+        color: #1f2937;
+        margin-bottom: 12px;
+    }
+
+    .subtitle {
+        color: #6b7280;
+        font-size: 18px;
+        margin-bottom: 30px;
+    }
+
+    .authenticated-message,
+    .unauthenticated-message {
+        margin: 30px 0;
+        padding: 20px;
+        background: #f9fafb;
+        border-radius: 8px;
+    }
+
+    .badge {
+        background: #4f46e5;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .button-group {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+    .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-primary {
+        background-color: #4f46e5;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: #4338ca;
+    }
+
+    .btn-secondary {
+        background-color: #6b7280;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background-color: #4b5563;
+    }
+
+    .features {
+        margin-top: 40px;
+        text-align: left;
+    }
+
+    .features h3 {
+        color: #1f2937;
+        margin-bottom: 16px;
+    }
+
+    .features ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .features li {
+        padding: 8px 0;
+        color: #4b5563;
+    }
+
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+        border-width: 0.3em;
+    }
+</style>
+
+@code {
+    private bool isLoading = true;
+    private bool isAuthenticated = false;
+    private frontend.Models.UserModel? currentUser;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+
+        try
+        {
+            isAuthenticated = await AuthService.IsAuthenticatedAsync();
+            if (isAuthenticated)
+            {
+                currentUser = await AuthService.GetCurrentUserAsync();
+                // Auto-redirect to dashboard if already logged in
+                Navigation.NavigateTo("/dashboard");
+            }
+        }
+        catch (Exception)
+        {
+            isAuthenticated = false;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void GoToLogin() => Navigation.NavigateTo("/login");
+    private void GoToRegister() => Navigation.NavigateTo("/register");
+    private void GoToDashboard() => Navigation.NavigateTo("/dashboard");
+}

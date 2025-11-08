@@ -1,0 +1,152 @@
+---
+
+## 🧱 **Project: Smart Maintenance Management System (SMMS)**
+
+**Stack:** Python (Flask) + Blazor (C#)
+**Focus:** OOP Principles + Software Design Patterns (no Docker)
+
+---
+
+## 🎯 **Goal**
+
+To demonstrate my mastery of **OOP design**, **layered architecture**, and **design patterns** through a real-world full-stack application that could easily evolve into an enterprise tool.
+
+---
+
+## 🧩 **Core Features**
+
+### 👥 **User Roles**
+
+* **Admin** – Manages users, assets, and assignments.
+* **Technician** – Handles assigned maintenance requests.
+* **Client** – Submits and tracks maintenance requests.
+
+### 🧾 **Maintenance Requests**
+
+* Request creation, updating, and tracking.
+* Attach descriptions, images, and categories.
+* Automatic notifications when request status changes.
+
+### 🧰 **Assets**
+
+* Track each asset by category, location, and condition.
+* Automatic status update (active/in repair).
+
+### 🔔 **Notifications**
+
+* Triggered via **Observer pattern** when maintenance status changes.
+* Extendable for email, SMS, or in-app alerts.
+
+---
+
+## 🧠 **Design Patterns Used**
+
+| Pattern                       | Purpose                                                               |
+| ----------------------------- | --------------------------------------------------------------------- |
+| **Factory**                   | Create specialized maintenance requests (Electrical, Plumbing, HVAC). |
+| **Repository**                | Abstract database operations for each entity (UserRepo, RequestRepo). |
+| **Service Layer**             | Encapsulate business logic separate from controllers.                 |
+| **Observer**                  | Notify technicians/admins when maintenance requests change status.    |
+| **Strategy**                  | Allow different notification strategies (Email, In-App).              |
+| **Singleton**                 | Central configuration or database connection management.              |
+| **Dependency Injection (DI)** | Pass repositories/services to controllers for flexibility.            |
+| *(Optional)* **Decorator**    | Add logging or caching to service methods.                            |
+
+---
+
+## 🧩 **Backend (Flask) Architecture**
+
+```
+smart_maintenance/
+└── backend/
+    ├── app/
+    │   ├── __init__.py              # Flask app initialization
+    │   ├── config.py                # Configuration (Singleton)
+    │   ├── models/                  # ORM models (OOP structure)
+    │   │   ├── user.py
+    │   │   ├── asset.py
+    │   │   └── request.py
+    │   ├── repositories/            # Repository Pattern
+    │   │   ├── user_repository.py
+    │   │   ├── asset_repository.py
+    │   │   └── request_repository.py
+    │   ├── services/                # Business Logic (Service Layer)
+    │   │   ├── maintenance_service.py
+    │   │   ├── notification_service.py
+    │   │   └── user_service.py
+    │   ├── controllers/             # Flask Blueprints
+    │   │   ├── user_controller.py
+    │   │   ├── request_controller.py
+    │   │   └── asset_controller.py
+    │   ├── patterns/                # Design pattern implementations
+    │   │   ├── factory.py
+    │   │   ├── observer.py
+    │   │   ├── strategy.py
+    │   │   └── singleton.py
+    │   └── routes/
+    │       └── api.py               # Registers Blueprints
+    ├── tests/
+    └── run.py
+```
+
+---
+
+## 🖥️ **Frontend (Blazor) Structure**
+
+```
+smart_maintenance/
+└── frontend/
+    └── SmartMaintenance.Blazor/
+        ├── Pages/
+        │   ├── Dashboard.razor
+        │   ├── Requests.razor
+        │   ├── Assets.razor
+        │   ├── Login.razor
+        │   └── Register.razor
+        ├── Components/
+        │   ├── RequestCard.razor
+        │   └── NotificationPanel.razor
+        ├── Models/
+        │   ├── Request.cs
+        │   ├── User.cs
+        │   └── Asset.cs
+        ├── Services/
+        │   ├── ApiService.cs
+        │   └── AuthService.cs
+        └── wwwroot/
+```
+
+---
+
+## ⚙️ **Development Roadmap (No Docker)**
+
+### **Phase 1 – Flask Setup**
+
+1. Create and initialize the Flask app.
+2. Set up SQLAlchemy and configurations (Singleton pattern).
+3. Implement core models (User, Asset, Request).
+4. Add repositories for CRUD operations.
+5. Build REST API endpoints.
+
+### **Phase 2 – Design Patterns**
+
+1. Add Factory for specialized requests.
+2. Implement Observer for notifications.
+3. Implement Strategy for different notification channels.
+4. Introduce Service Layer for clean business logic.
+
+### **Phase 3 – Blazor Integration**
+
+1. Create Blazor project (`dotnet new blazorwasm`).
+2. Build pages for login, requests, and dashboard.
+3. Connect to Flask API via `HttpClient`.
+4. Display data dynamically with components and charts.
+
+### **Phase 4 – Finishing Touches**
+
+1. Add authentication (JWT).
+2. Apply design (CSS/Bootstrap/Tailwind).
+3. Write unit tests for backend services.
+4. Document everything in a **README.md**.
+
+---

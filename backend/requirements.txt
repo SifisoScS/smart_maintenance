@@ -1,0 +1,28 @@
+# Core Framework
+Flask==3.0.0
+flask-cors==4.0.0
+
+# Database
+SQLAlchemy==2.0.23
+Flask-SQLAlchemy==3.1.1
+Flask-Migrate==4.0.5
+psycopg2-binary==2.9.9
+
+# Authentication
+PyJWT==2.8.0
+flask-jwt-extended==4.6.0
+bcrypt==4.1.2
+
+# Validation
+marshmallow==3.20.1
+email-validator==2.1.0
+
+# Testing
+pytest==7.4.3
+pytest-cov==4.1.0
+
+# Development
+python-dotenv==1.0.0
+
+# API Documentation
+flask-swagger-ui==5.21.0
