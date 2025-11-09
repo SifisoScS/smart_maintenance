@@ -88,10 +88,13 @@
                     <h3>Purchase Information</h3>
                 </div>
                 <div class="card-body">
-                    <div class="info-row">
-                        <span class="label">Purchase Date:</span>
-                        <span class="value">@asset.PurchaseDate.ToString("MMM dd, yyyy")</span>
-                    </div>
+                    @if (asset.PurchaseDate.HasValue)
+                    {
+                        <div class="info-row">
+                            <span class="label">Purchase Date:</span>
+                            <span class="value">@asset.PurchaseDate.Value.ToString("MMM dd, yyyy")</span>
+                        </div>
+                    }
                     @if (asset.PurchasePrice.HasValue)
                     {
                         <div class="info-row">
@@ -99,10 +102,13 @@
                             <span class="value">$@asset.PurchasePrice.Value.ToString("N2")</span>
                         </div>
                     }
-                    <div class="info-row">
-                        <span class="label">Age:</span>
-                        <span class="value">@GetAssetAge()</span>
-                    </div>
+                    @if (asset.PurchaseDate.HasValue)
+                    {
+                        <div class="info-row">
+                            <span class="label">Age:</span>
+                            <span class="value">@GetAssetAge()</span>
+                        </div>
+                    }
                     <div class="info-row">
                         <span class="label">Created:</span>
                         <span class="value">@asset.CreatedAt.ToString("MMM dd, yyyy h:mm tt")</span>
@@ -566,9 +572,9 @@
 
     private string GetAssetAge()
     {
-        if (asset == null) return "N/A";
+        if (asset == null || !asset.PurchaseDate.HasValue) return "N/A";
 
-        var age = DateTime.Now - asset.PurchaseDate;
+        var age = DateTime.Now - asset.PurchaseDate.Value;
         var years = age.Days / 365;
         var months = (age.Days % 365) / 30;
 

@@ -71,7 +71,7 @@ def list_assets():
     """List all assets."""
     try:
         assets = asset_repo.get_all()
-        return jsonify({'data': [a.to_dict() for a in assets], 'total': len(assets)}), 200
+        return jsonify({'success': True, 'data': [a.to_dict() for a in assets], 'total': len(assets)}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

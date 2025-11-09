@@ -12,7 +12,7 @@ namespace frontend.Models
         public string Location { get; set; } = string.Empty;
         public string Condition { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
-        public DateTime PurchaseDate { get; set; }
+        public DateTime? PurchaseDate { get; set; }
         public decimal? PurchasePrice { get; set; }
         public DateTime CreatedAt { get; set; }
     }
