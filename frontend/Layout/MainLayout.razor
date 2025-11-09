@@ -1,16 +1,95 @@
 ﻿@inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+@using frontend.Services.Interfaces
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+<div class="app-container">
+    <!-- Modern Horizontal Navigation -->
+    <nav class="top-navbar">
+        <div class="navbar-content">
+            <!-- Logo & Brand -->
+            <div class="navbar-brand" @onclick="NavigateHome">
+                <div class="brand-icon">🔧</div>
+                <span class="brand-text">SMMS</span>
+            </div>
+
+            <!-- Navigation Links -->
+            <div class="navbar-links">
+                @if (isAuthenticated)
+                {
+                    <a href="/dashboard" class="nav-link">Dashboard</a>
+                    <a href="/requests" class="nav-link">Requests</a>
+                    <a href="/assets" class="nav-link">Assets</a>
+                }
+                else
+                {
+                    <a href="#features" class="nav-link">Features</a>
+                    <a href="#how-it-works" class="nav-link">How It Works</a>
+                }
+            </div>
+
+            <!-- Auth Buttons -->
+            <div class="navbar-actions">
+                @if (isAuthenticated)
+                {
+                    <button class="btn-glass" @onclick="HandleLogout">
+                        Sign Out
+                    </button>
+                }
+                else
+                {
+                    <button class="btn-glass" @onclick='() => Navigation.NavigateTo("/login")'>
+                        Sign In
+                    </button>
+                    <button class="btn-gradient" @onclick='() => Navigation.NavigateTo("/register")'>
+                        Get Started
+                    </button>
+                }
+            </div>
         </div>
+    </nav>
 
-        <article class="content px-4">
-            @Body
-        </article>
+    <!-- Main Content -->
+    <main class="main-content">
+        @Body
     </main>
 </div>
+
+@code {
+    private bool isAuthenticated = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isAuthenticated = await AuthService.IsAuthenticatedAsync();
+        }
+        catch
+        {
+            isAuthenticated = false;
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        try
+        {
+            isAuthenticated = await AuthService.IsAuthenticatedAsync();
+        }
+        catch
+        {
+            isAuthenticated = false;
+        }
+    }
+
+    private void NavigateHome()
+    {
+        Navigation.NavigateTo("/");
+    }
+
+    private async Task HandleLogout()
+    {
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/", forceLoad: true);
+    }
+}

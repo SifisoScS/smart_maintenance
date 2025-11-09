@@ -1,161 +1,781 @@
-﻿@page "/"
+@page "/"
 @using frontend.Services.Interfaces
 @inject IAuthService AuthService
 @inject NavigationManager Navigation
 
-<PageTitle>Smart Maintenance</PageTitle>
+<PageTitle>Smart Maintenance - Transform Your Operations</PageTitle>
 
-<div class="welcome-container">
-    <div class="welcome-card">
-        <h1>🔧 Smart Maintenance System</h1>
-        <p class="subtitle">Streamline your maintenance operations</p>
-
-        @if (isLoading)
-        {
-            <div class="text-center">
-                <div class="spinner-border" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-            </div>
-        }
-        else if (isAuthenticated)
-        {
-            <div class="authenticated-message">
-                <p>✅ You're logged in as <strong>@currentUser?.FullName</strong></p>
-                <p>Role: <span class="badge">@currentUser?.Role</span></p>
-                <button class="btn btn-primary" @onclick="GoToDashboard">Go to Dashboard</button>
-            </div>
-        }
-        else
-        {
-            <div class="unauthenticated-message">
-                <p>Please sign in to access your maintenance dashboard</p>
-                <div class="button-group">
-                    <button class="btn btn-primary" @onclick="GoToLogin">Sign In</button>
-                    <button class="btn btn-secondary" @onclick="GoToRegister">Register</button>
-                </div>
-            </div>
-        }
-
-        <div class="features">
-            <h3>Features</h3>
-            <ul>
-                <li>📋 Submit and track maintenance requests</li>
-                <li>👥 Role-based access (Admin, Technician, Client)</li>
-                <li>🏗️ Asset management and tracking</li>
-                <li>📊 Real-time status updates</li>
-                <li>🔔 Notification system</li>
-            </ul>
-        </div>
+<div class="landing-page">
+    <!-- Animated Background Blobs -->
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
     </div>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="sparkle">✨</span>
+                    <span>Powered by AI & Design Patterns</span>
+                </div>
+
+                <h1 class="hero-title">
+                    <span class="gradient-text">Smart Maintenance</span>
+                    <br />
+                    <span class="white-text">Redefined</span>
+                </h1>
+
+                <p class="hero-subtitle">
+                    Transform your maintenance operations with intelligent automation, real-time tracking,
+                    and predictive analytics. Built with enterprise-grade architecture.
+                </p>
+
+                <div class="hero-buttons">
+                    @if (isAuthenticated)
+                    {
+                        <button class="btn btn-gradient" @onclick="GoToDashboard">
+                            Go to Dashboard
+                            <span class="arrow">→</span>
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-gradient" @onclick="GoToLogin">
+                            Start Free Trial
+                            <span class="arrow">→</span>
+                        </button>
+                        <button class="btn btn-glass" @onclick="GoToRegister">
+                            Sign Up
+                        </button>
+                    }
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">⚡</div>
+                        <div class="stat-value">80%</div>
+                        <div class="stat-label">Faster Resolution</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-value">10k+</div>
+                        <div class="stat-label">Active Users</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-value">99.9%</div>
+                        <div class="stat-label">Uptime SLA</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-value">50k+</div>
+                        <div class="stat-label">Tasks Completed</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="gradient-text">Built for Scale</span>
+                </h2>
+                <p class="section-subtitle">Enterprise features that grow with your organization</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon gradient-bg">⚡</div>
+                    <h3 class="feature-title">Lightning Fast</h3>
+                    <p class="feature-description">
+                        Submit and track maintenance requests in real-time with instant notifications
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon gradient-bg">🛡️</div>
+                    <h3 class="feature-title">Enterprise Ready</h3>
+                    <p class="feature-description">
+                        Role-based access control with advanced security and compliance features
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon gradient-bg">📊</div>
+                    <h3 class="feature-title">Smart Analytics</h3>
+                    <p class="feature-description">
+                        AI-powered insights to predict maintenance needs before they become critical
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">How It Works</h2>
+                <p class="section-subtitle">Simple, powerful, automated</p>
+            </div>
+
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-number">01</div>
+                    <h3 class="step-title">Submit Request</h3>
+                    <p class="step-description">
+                        Create maintenance requests instantly via web or mobile with photo attachments and priority levels
+                    </p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">02</div>
+                    <h3 class="step-title">Smart Assignment</h3>
+                    <p class="step-description">
+                        AI-powered routing assigns tasks to the right technician based on skills, location, and workload
+                    </p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">03</div>
+                    <h3 class="step-title">Track & Complete</h3>
+                    <p class="step-description">
+                        Monitor progress in real-time with automated notifications and performance analytics
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technology Stack Section -->
+    <section class="tech-section">
+        <div class="container">
+            <div class="tech-card">
+                <h2 class="section-title">Powered by Modern Technology</h2>
+                <p class="section-subtitle">Built with industry-leading frameworks and patterns</p>
+
+                <div class="tech-grid">
+                    <div class="tech-item">Python/Flask</div>
+                    <div class="tech-item">Blazor/.NET</div>
+                    <div class="tech-item">Design Patterns</div>
+                    <div class="tech-item">SQLAlchemy</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-card">
+                <h2 class="cta-title">Ready to Transform Your Maintenance?</h2>
+                <p class="cta-subtitle">Join thousands of organizations optimizing their operations</p>
+
+                <div class="cta-buttons">
+                    @if (isAuthenticated)
+                    {
+                        <button class="btn btn-white" @onclick="GoToDashboard">
+                            Go to Dashboard
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-white" @onclick="GoToLogin">
+                            Start Free Trial
+                        </button>
+                        <button class="btn btn-glass-white" @onclick="GoToRegister">
+                            Sign Up
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <div class="logo-icon">🔧</div>
+                        <span class="logo-text">SMMS</span>
+                    </div>
+                    <p class="footer-tagline">Smart Maintenance Management System</p>
+                </div>
+
+                <div class="footer-links">
+                    <h4 class="footer-heading">Product</h4>
+                    <ul class="footer-list">
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#how-it-works">How It Works</a></li>
+                        <li><a href="/dashboard">Dashboard</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-links">
+                    <h4 class="footer-heading">Company</h4>
+                    <ul class="footer-list">
+                        <li><a href="#">About</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-links">
+                    <h4 class="footer-heading">Legal</h4>
+                    <ul class="footer-list">
+                        <li><a href="#">Privacy</a></li>
+                        <li><a href="#">Terms</a></li>
+                        <li><a href="#">Security</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>© 2024 SMMS. Built by Sifiso Shezi. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
 </div>
 
 <style>
-    .welcome-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 80vh;
-        padding: 20px;
+    /* Base Styles */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
     }
 
-    .welcome-card {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        padding: 40px;
-        max-width: 600px;
-        width: 100%;
+    .landing-page {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+        color: white;
+        overflow-x: hidden;
+        position: relative;
+    }
+
+    /* Animated Background Blobs */
+    .background-blobs {
+        position: fixed;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .blob {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.3;
+        animation: float 20s infinite ease-in-out;
+    }
+
+    .blob-1 {
+        top: 10%;
+        left: -10%;
+        width: 400px;
+        height: 400px;
+        background: #8b5cf6;
+        animation-delay: 0s;
+    }
+
+    .blob-2 {
+        bottom: 10%;
+        right: -10%;
+        width: 500px;
+        height: 500px;
+        background: #ec4899;
+        animation-delay: 7s;
+    }
+
+    .blob-3 {
+        top: 50%;
+        left: 50%;
+        width: 350px;
+        height: 350px;
+        background: #3b82f6;
+        animation-delay: 14s;
+        transform: translate(-50%, -50%);
+    }
+
+    @@keyframes float {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        33% { transform: translate(50px, -50px) scale(1.1); }
+        66% { transform: translate(-50px, 50px) scale(0.9); }
+    }
+
+    /* Container */
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+        position: relative;
+        z-index: 10;
+    }
+
+    /* Hero Section */
+    .hero-section {
+        padding: 100px 0 120px;
         text-align: center;
     }
 
-    .welcome-card h1 {
-        color: #1f2937;
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 50px;
+        margin-bottom: 32px;
+        animation: pulse 2s infinite;
+    }
+
+    .sparkle {
+        font-size: 16px;
+    }
+
+    @@keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.8; }
+    }
+
+    .hero-title {
+        font-size: clamp(48px, 10vw, 96px);
+        font-weight: 800;
+        line-height: 1.1;
+        margin-bottom: 24px;
+    }
+
+    .gradient-text {
+        background: linear-gradient(135deg, #a78bfa 0%, #ec4899 50%, #60a5fa 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .white-text {
+        color: white;
+    }
+
+    .hero-subtitle {
+        font-size: clamp(18px, 3vw, 24px);
+        color: #cbd5e1;
+        max-width: 800px;
+        margin: 0 auto 40px;
+        line-height: 1.6;
+    }
+
+    .hero-buttons {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 80px;
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 16px 32px;
+        font-size: 18px;
+        font-weight: 600;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-gradient {
+        background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+        color: white;
+        box-shadow: 0 10px 30px rgba(139, 92, 246, 0.5);
+    }
+
+    .btn-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 40px rgba(139, 92, 246, 0.6);
+    }
+
+    .btn-gradient .arrow {
+        transition: transform 0.3s ease;
+    }
+
+    .btn-gradient:hover .arrow {
+        transform: translateX(4px);
+    }
+
+    .btn-glass {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+
+    .btn-glass:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-white {
+        background: white;
+        color: #8b5cf6;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-white:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-glass-white {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+    }
+
+    .btn-glass-white:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .stat-card {
+        padding: 24px;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-4px);
+    }
+
+    .stat-icon {
+        font-size: 32px;
         margin-bottom: 12px;
     }
 
-    .subtitle {
-        color: #6b7280;
-        font-size: 18px;
-        margin-bottom: 30px;
+    .stat-value {
+        font-size: 36px;
+        font-weight: 800;
+        margin-bottom: 8px;
     }
 
-    .authenticated-message,
-    .unauthenticated-message {
-        margin: 30px 0;
-        padding: 20px;
-        background: #f9fafb;
-        border-radius: 8px;
-    }
-
-    .badge {
-        background: #4f46e5;
-        color: white;
-        padding: 4px 12px;
-        border-radius: 12px;
+    .stat-label {
         font-size: 14px;
-        font-weight: 600;
+        color: #94a3b8;
     }
 
-    .button-group {
-        display: flex;
-        gap: 12px;
-        justify-content: center;
-        margin-top: 20px;
+    /* Features Section */
+    .features-section {
+        padding: 80px 0;
     }
 
-    .btn {
-        padding: 12px 24px;
-        border: none;
-        border-radius: 6px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
+    .section-header {
+        text-align: center;
+        margin-bottom: 60px;
     }
 
-    .btn-primary {
-        background-color: #4f46e5;
-        color: white;
-    }
-
-    .btn-primary:hover {
-        background-color: #4338ca;
-    }
-
-    .btn-secondary {
-        background-color: #6b7280;
-        color: white;
-    }
-
-    .btn-secondary:hover {
-        background-color: #4b5563;
-    }
-
-    .features {
-        margin-top: 40px;
-        text-align: left;
-    }
-
-    .features h3 {
-        color: #1f2937;
+    .section-title {
+        font-size: clamp(36px, 6vw, 56px);
+        font-weight: 800;
         margin-bottom: 16px;
     }
 
-    .features ul {
+    .section-subtitle {
+        font-size: 20px;
+        color: #cbd5e1;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 32px;
+    }
+
+    .feature-card {
+        padding: 40px;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        transition: all 0.4s ease;
+    }
+
+    .feature-card:hover {
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.2));
+        border-color: rgba(139, 92, 246, 0.5);
+        transform: scale(1.05);
+        box-shadow: 0 20px 60px rgba(139, 92, 246, 0.3);
+    }
+
+    .feature-icon {
+        width: 56px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        border-radius: 16px;
+        margin-bottom: 24px;
+    }
+
+    .gradient-bg {
+        background: linear-gradient(135deg, #8b5cf6, #ec4899);
+    }
+
+    .feature-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 16px;
+    }
+
+    .feature-description {
+        color: #cbd5e1;
+        line-height: 1.6;
+    }
+
+    /* How It Works Section */
+    .how-it-works-section {
+        padding: 80px 0;
+    }
+
+    .steps-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 32px;
+    }
+
+    .step-card {
+        padding: 40px;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.1));
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 24px;
+        transition: all 0.3s ease;
+    }
+
+    .step-card:hover {
+        border-color: rgba(139, 92, 246, 0.5);
+    }
+
+    .step-number {
+        font-size: 80px;
+        font-weight: 800;
+        color: rgba(139, 92, 246, 0.3);
+        line-height: 1;
+        margin-bottom: 16px;
+        transition: all 0.3s ease;
+    }
+
+    .step-card:hover .step-number {
+        color: rgba(139, 92, 246, 0.5);
+    }
+
+    .step-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 16px;
+    }
+
+    .step-description {
+        color: #cbd5e1;
+        line-height: 1.6;
+    }
+
+    /* Technology Section */
+    .tech-section {
+        padding: 80px 0;
+    }
+
+    .tech-card {
+        padding: 60px;
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(236, 72, 153, 0.1));
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 24px;
+        text-align: center;
+    }
+
+    .tech-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 24px;
+        margin-top: 40px;
+    }
+
+    .tech-item {
+        padding: 24px;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        font-size: 18px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .tech-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* CTA Section */
+    .cta-section {
+        padding: 80px 0;
+    }
+
+    .cta-card {
+        padding: 60px;
+        background: linear-gradient(135deg, #8b5cf6, #ec4899);
+        border-radius: 24px;
+        text-align: center;
+        box-shadow: 0 30px 60px rgba(139, 92, 246, 0.5);
+    }
+
+    .cta-title {
+        font-size: clamp(32px, 5vw, 48px);
+        font-weight: 800;
+        margin-bottom: 16px;
+    }
+
+    .cta-subtitle {
+        font-size: 20px;
+        color: rgba(255, 255, 255, 0.9);
+        margin-bottom: 32px;
+    }
+
+    .cta-buttons {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    /* Footer */
+    .footer {
+        padding: 60px 0 30px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+    }
+
+    .footer-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 40px;
+        margin-bottom: 40px;
+    }
+
+    .footer-logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .logo-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #8b5cf6, #ec4899);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+
+    .logo-text {
+        font-size: 20px;
+        font-weight: 800;
+    }
+
+    .footer-tagline {
+        color: #94a3b8;
+        font-size: 14px;
+    }
+
+    .footer-heading {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 16px;
+    }
+
+    .footer-list {
         list-style: none;
-        padding: 0;
     }
 
-    .features li {
-        padding: 8px 0;
-        color: #4b5563;
+    .footer-list li {
+        margin-bottom: 12px;
     }
 
-    .spinner-border {
-        width: 3rem;
-        height: 3rem;
-        border-width: 0.3em;
+    .footer-list a {
+        color: #94a3b8;
+        text-decoration: none;
+        font-size: 14px;
+        transition: color 0.3s ease;
+    }
+
+    .footer-list a:hover {
+        color: white;
+    }
+
+    .footer-bottom {
+        padding-top: 32px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
+        color: #94a3b8;
+        font-size: 14px;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .hero-section {
+            padding: 60px 0 80px;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .features-grid,
+        .steps-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .tech-card {
+            padding: 40px 20px;
+        }
+
+        .cta-card {
+            padding: 40px 20px;
+        }
+
+        .footer-grid {
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
     }
 </style>
 
@@ -174,8 +794,6 @@
             if (isAuthenticated)
             {
                 currentUser = await AuthService.GetCurrentUserAsync();
-                // Auto-redirect to dashboard if already logged in
-                Navigation.NavigateTo("/dashboard");
             }
         }
         catch (Exception)
