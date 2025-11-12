@@ -72,6 +72,7 @@ def register_blueprints(app):
     from app.controllers.user_controller import user_bp
     from app.controllers.asset_controller import asset_bp
     from app.controllers.request_controller import request_bp
+    from app.controllers.feature_flag_controller import feature_flag_bp
 
     # Register API blueprints
     app.register_blueprint(health_bp)
@@ -79,6 +80,7 @@ def register_blueprints(app):
     app.register_blueprint(user_bp)
     app.register_blueprint(asset_bp)
     app.register_blueprint(request_bp)
+    app.register_blueprint(feature_flag_bp)
 
     # Register legacy API blueprint if it exists
     try:

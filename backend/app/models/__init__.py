@@ -16,6 +16,7 @@ from app.models.request import (
     RequestPriority,
     RequestType
 )
+from app.models.feature_flag import FeatureFlag, FeatureCategory, Features
 
 __all__ = [
     # Base
@@ -39,4 +40,9 @@ __all__ = [
     'RequestStatus',
     'RequestPriority',
     'RequestType',
+
+    # Feature Flags
+    'FeatureFlag',
+    'FeatureCategory',
+    'Features',
 ]

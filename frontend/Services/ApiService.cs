@@ -396,5 +396,211 @@ namespace frontend.Services
                 return null;
             }
         }
+
+        // ============ Feature Flag Endpoints ============
+
+        public async Task<FeatureFlagListResponse> GetFeatureFlagsAsync()
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<FeatureFlagListResponse>("/api/v1/features");
+                return response ?? new FeatureFlagListResponse { Success = false, Error = "No response from server" };
+            }
+            catch (Exception ex)
+            {
+                return new FeatureFlagListResponse { Success = false, Error = $"Exception: {ex.Message}" };
+            }
+        }
+
+        public async Task<FeatureFlagListResponse> GetEnabledFeatureFlagsAsync()
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<FeatureFlagListResponse>("/api/v1/features/enabled");
+                return response ?? new FeatureFlagListResponse { Success = false, Error = "No response from server" };
+            }
+            catch (Exception ex)
+            {
+                return new FeatureFlagListResponse { Success = false, Error = $"Exception: {ex.Message}" };
+            }
+        }
+
+        public async Task<MyFeaturesResponse> GetMyFeaturesAsync()
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<MyFeaturesResponse>("/api/v1/features/my-features");
+                return response ?? new MyFeaturesResponse { Success = false, Error = "No response from server" };
+            }
+            catch (Exception ex)
+            {
+                return new MyFeaturesResponse { Success = false, Error = $"Exception: {ex.Message}" };
+            }
+        }
+
+        public async Task<FeatureFlagResponse> GetFeatureFlagByKeyAsync(string featureKey)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<FeatureFlagResponse>($"/api/v1/features/{featureKey}");
+                return response ?? new FeatureFlagResponse { Success = false, Error = "No response from server" };
+            }
+            catch (Exception ex)
+            {
+                return new FeatureFlagResponse { Success = false, Error = $"Exception: {ex.Message}" };
+            }
+        }
+
+        public async Task<FeatureCheckResponse> CheckFeatureEnabledAsync(string featureKey)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<FeatureCheckResponse>($"/api/v1/features/{featureKey}/check");
+                return response ?? new FeatureCheckResponse { Success = false, Error = "No response from server" };
+            }
+            catch (Exception ex)
+            {
+                return new FeatureCheckResponse { Success = false, Error = $"Exception: {ex.Message}" };
+            }
+        }
+
+        public async Task<FeatureFlagResponse> CreateFeatureFlagAsync(CreateFeatureFlagRequest request)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync("/api/v1/features", request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<FeatureFlagResponse>()
+                           ?? new FeatureFlagResponse { Success = false, Error = "Failed to create feature flag" };
+                }
+
+                var errorContent = await response.Content.ReadAsStringAsync();
+                return new FeatureFlagResponse
+                {
+                    Success = false,
+                    Error = $"Error {response.StatusCode}: {errorContent}"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new FeatureFlagResponse
+                {
+                    Success = false,
+                    Error = $"Exception: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<FeatureFlagResponse> UpdateFeatureFlagAsync(int flagId, UpdateFeatureFlagRequest request)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.PatchAsJsonAsync($"/api/v1/features/{flagId}", request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<FeatureFlagResponse>()
+                           ?? new FeatureFlagResponse { Success = false, Error = "Failed to update feature flag" };
+                }
+
+                var errorContent = await response.Content.ReadAsStringAsync();
+                return new FeatureFlagResponse
+                {
+                    Success = false,
+                    Error = $"Error {response.StatusCode}: {errorContent}"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new FeatureFlagResponse
+                {
+                    Success = false,
+                    Error = $"Exception: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<FeatureFlagResponse> ToggleFeatureFlagAsync(int flagId)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.PostAsync($"/api/v1/features/{flagId}/toggle", null);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<FeatureFlagResponse>()
+                           ?? new FeatureFlagResponse { Success = false, Error = "Failed to toggle feature flag" };
+                }
+
+                var errorContent = await response.Content.ReadAsStringAsync();
+                return new FeatureFlagResponse
+                {
+                    Success = false,
+                    Error = $"Error {response.StatusCode}: {errorContent}"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new FeatureFlagResponse
+                {
+                    Success = false,
+                    Error = $"Exception: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<FeatureFlagResponse> DeleteFeatureFlagAsync(int flagId)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.DeleteAsync($"/api/v1/features/{flagId}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<FeatureFlagResponse>()
+                           ?? new FeatureFlagResponse { Success = false, Error = "Failed to delete feature flag" };
+                }
+
+                var errorContent = await response.Content.ReadAsStringAsync();
+                return new FeatureFlagResponse
+                {
+                    Success = false,
+                    Error = $"Error {response.StatusCode}: {errorContent}"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new FeatureFlagResponse
+                {
+                    Success = false,
+                    Error = $"Exception: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<FeatureFlagListResponse> GetFeatureFlagsByCategoryAsync(string category)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<FeatureFlagListResponse>($"/api/v1/features/category/{category}");
+                return response ?? new FeatureFlagListResponse { Success = false, Error = "No response from server" };
+            }
+            catch (Exception ex)
+            {
+                return new FeatureFlagListResponse { Success = false, Error = $"Exception: {ex.Message}" };
+            }
+        }
     }
 }

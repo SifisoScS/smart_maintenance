@@ -73,5 +73,57 @@ namespace frontend.Services.Interfaces
         /// Get a specific user by ID
         /// </summary>
         Task<UserModel?> GetUserByIdAsync(int id);
+
+        // ============ Feature Flag Endpoints ============
+
+        /// <summary>
+        /// Get all feature flags
+        /// </summary>
+        Task<FeatureFlagListResponse> GetFeatureFlagsAsync();
+
+        /// <summary>
+        /// Get all enabled feature flags
+        /// </summary>
+        Task<FeatureFlagListResponse> GetEnabledFeatureFlagsAsync();
+
+        /// <summary>
+        /// Get feature flags enabled for current user
+        /// </summary>
+        Task<MyFeaturesResponse> GetMyFeaturesAsync();
+
+        /// <summary>
+        /// Get specific feature flag by key
+        /// </summary>
+        Task<FeatureFlagResponse> GetFeatureFlagByKeyAsync(string featureKey);
+
+        /// <summary>
+        /// Check if feature is enabled for current user
+        /// </summary>
+        Task<FeatureCheckResponse> CheckFeatureEnabledAsync(string featureKey);
+
+        /// <summary>
+        /// Create a new feature flag (admin only)
+        /// </summary>
+        Task<FeatureFlagResponse> CreateFeatureFlagAsync(CreateFeatureFlagRequest request);
+
+        /// <summary>
+        /// Update a feature flag (admin only)
+        /// </summary>
+        Task<FeatureFlagResponse> UpdateFeatureFlagAsync(int flagId, UpdateFeatureFlagRequest request);
+
+        /// <summary>
+        /// Toggle feature flag on/off (admin only)
+        /// </summary>
+        Task<FeatureFlagResponse> ToggleFeatureFlagAsync(int flagId);
+
+        /// <summary>
+        /// Delete a feature flag (admin only)
+        /// </summary>
+        Task<FeatureFlagResponse> DeleteFeatureFlagAsync(int flagId);
+
+        /// <summary>
+        /// Get feature flags by category
+        /// </summary>
+        Task<FeatureFlagListResponse> GetFeatureFlagsByCategoryAsync(string category);
     }
 }
