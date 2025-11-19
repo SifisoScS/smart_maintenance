@@ -125,5 +125,30 @@ namespace frontend.Services.Interfaces
         /// Get feature flags by category
         /// </summary>
         Task<FeatureFlagListResponse> GetFeatureFlagsByCategoryAsync(string category);
+
+        // ============ Permission Endpoints ============
+
+        Task<List<PermissionModel>> GetPermissionsAsync();
+        Task<GroupedPermissionsResponse?> GetPermissionsGroupedAsync();
+        Task<PermissionModel?> GetPermissionByIdAsync(int id);
+        Task<ApiResponse> CreatePermissionAsync(CreatePermissionRequest request);
+        Task<ApiResponse> UpdatePermissionAsync(int id, UpdatePermissionRequest request);
+        Task<ApiResponse> DeletePermissionAsync(int id);
+        Task<CheckPermissionResponse?> CheckUserPermissionAsync(int userId, string permissionName);
+        Task<UserPermissionsResponse?> GetUserPermissionsAsync(int userId);
+
+        // ============ Role Endpoints ============
+
+        Task<List<RoleModel>> GetRolesAsync();
+        Task<RoleModel?> GetRoleByIdAsync(int id);
+        Task<ApiResponse> CreateRoleAsync(CreateRoleRequest request);
+        Task<ApiResponse> UpdateRoleAsync(int id, UpdateRoleRequest request);
+        Task<ApiResponse> DeleteRoleAsync(int id);
+        Task<ApiResponse> AddPermissionToRoleAsync(int roleId, AddPermissionToRoleRequest request);
+        Task<ApiResponse> RemovePermissionFromRoleAsync(int roleId, int permissionId);
+        Task<RoleUsersResponse?> GetRoleUsersAsync(int roleId);
+        Task<UserRolesResponse?> GetUserRolesAsync(int userId);
+        Task<RoleAssignmentResponse?> AssignRoleToUserAsync(int userId, AssignRoleRequest request);
+        Task<RoleAssignmentResponse?> RemoveRoleFromUserAsync(int userId, int roleId);
     }
 }

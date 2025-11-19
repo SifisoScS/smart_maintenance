@@ -73,6 +73,8 @@ def register_blueprints(app):
     from app.controllers.asset_controller import asset_bp
     from app.controllers.request_controller import request_bp
     from app.controllers.feature_flag_controller import feature_flag_bp
+    from app.controllers.permission_controller import permission_bp
+    from app.controllers.role_controller import role_bp
 
     # Register API blueprints
     app.register_blueprint(health_bp)
@@ -81,6 +83,8 @@ def register_blueprints(app):
     app.register_blueprint(asset_bp)
     app.register_blueprint(request_bp)
     app.register_blueprint(feature_flag_bp)
+    app.register_blueprint(permission_bp)
+    app.register_blueprint(role_bp)
 
     # Register legacy API blueprint if it exists
     try:

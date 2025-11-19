@@ -28,6 +28,7 @@ from app.schemas.request_schemas import (
     RequestCompleteSchema
 )
 from app.middleware.auth import admin_required, technician_required, get_current_user
+from app.middleware.permissions import require_permission, require_any_permission
 
 # Create blueprint
 request_bp = Blueprint('requests', __name__, url_prefix='/api/v1/requests')
@@ -60,6 +61,7 @@ request_complete_schema = RequestCompleteSchema()
 
 @request_bp.route('', methods=['POST'])
 @jwt_required()
+@require_permission("create_requests")
 def create_request():
     """Create maintenance request."""
     try:
@@ -83,6 +85,7 @@ def create_request():
 
 @request_bp.route('', methods=['GET'])
 @jwt_required()
+@require_permission("view_requests")
 def list_requests():
     """List maintenance requests."""
     try:
@@ -94,6 +97,7 @@ def list_requests():
 
 @request_bp.route('/<int:request_id>', methods=['GET'])
 @jwt_required()
+@require_permission("view_requests")
 def get_request(request_id):
     """Get request by ID."""
     try:
@@ -109,6 +113,7 @@ def get_request(request_id):
 
 @request_bp.route('/<int:request_id>/assign', methods=['POST'])
 @admin_required()
+@require_permission("assign_requests")
 def assign_request(request_id):
     """Assign request to technician (admin only)."""
     try:
@@ -133,6 +138,7 @@ def assign_request(request_id):
 
 @request_bp.route('/<int:request_id>/start', methods=['POST'])
 @technician_required()
+@require_permission("start_work")
 def start_work(request_id):
     """Start work on request (assigned technician)."""
     try:
@@ -153,6 +159,7 @@ def start_work(request_id):
 
 @request_bp.route('/<int:request_id>/complete', methods=['POST'])
 @technician_required()
+@require_permission("complete_requests")
 def complete_request(request_id):
     """Complete work on request (assigned technician)."""
     try:
@@ -178,6 +185,7 @@ def complete_request(request_id):
 
 @request_bp.route('/unassigned', methods=['GET'])
 @admin_required()
+@require_any_permission("assign_requests", "view_requests")
 def unassigned_requests():
     """Get unassigned requests (admin only)."""
     try:

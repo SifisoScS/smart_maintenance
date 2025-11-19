@@ -1,0 +1,663 @@
+@page "/permissions"
+@using frontend.Models
+@using frontend.Services.Interfaces
+@inject IAuthService AuthService
+@inject IApiService ApiService
+@inject NavigationManager Navigation
+
+<PageTitle>Permissions - Smart Maintenance</PageTitle>
+
+<div class="permissions-container">
+    @if (isLoading)
+    {
+        <div class="loading-container">
+            <div class="spinner-border spinner-large" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p>Loading permissions...</p>
+        </div>
+    }
+    else if (!isAuthenticated || currentUser == null)
+    {
+        <div class="alert alert-warning">
+            <h4>⚠️ Authentication Required</h4>
+            <p>Please <a href="/login">sign in</a> to view permissions.</p>
+        </div>
+    }
+    else if (currentUser.Role != "admin")
+    {
+        <div class="alert alert-danger">
+            <h4>🔒 Access Denied</h4>
+            <p>Only administrators can view permissions.</p>
+        </div>
+    }
+    else
+    {
+        <div class="page-header">
+            <div class="header-content">
+                <div>
+                    <h1>System Permissions</h1>
+                    <p class="subtitle">View all available permissions in the system</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" @onclick="LoadPermissions">
+                        🔄 Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-cards">
+            <div class="summary-card">
+                <div class="card-icon total">🔑</div>
+                <div class="card-content">
+                    <div class="card-value">@permissions.Count</div>
+                    <div class="card-label">Total Permissions</div>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="card-icon resources">📦</div>
+                <div class="card-content">
+                    <div class="card-value">@(groupedPermissions?.Grouped.Count ?? 0)</div>
+                    <div class="card-label">Resources</div>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="card-icon actions">⚡</div>
+                <div class="card-content">
+                    <div class="card-value">@permissions.Select(p => p.Action).Distinct().Count()</div>
+                    <div class="card-label">Unique Actions</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter by Resource -->
+        <div class="filters">
+            <label>Filter by Resource:</label>
+            <select class="form-select" @bind="selectedResource" @bind:after="FilterPermissions">
+                <option value="all">All Resources</option>
+                @if (groupedPermissions != null)
+                {
+                    @foreach (var resource in groupedPermissions.Grouped.Keys.OrderBy(k => k))
+                    {
+                        <option value="@resource">@resource.ToUpper()</option>
+                    }
+                }
+            </select>
+
+            <label style="margin-left: 20px;">Search:</label>
+            <input type="text"
+                   class="form-control"
+                   placeholder="Search permissions..."
+                   style="max-width: 300px;"
+                   @bind="searchTerm"
+                   @bind:event="oninput"
+                   @bind:after="FilterPermissions" />
+        </div>
+
+        @if (errorMessage != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show">
+                <strong>Error:</strong> @errorMessage
+                <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+            </div>
+        }
+
+        <!-- Permissions Display -->
+        @if (filteredPermissions.Count == 0)
+        {
+            <div class="no-data">
+                <p>No permissions found matching your search criteria.</p>
+            </div>
+        }
+        else if (selectedResource == "all")
+        {
+            <!-- Grouped View -->
+            @if (groupedPermissions != null && groupedPermissions.Grouped.Any())
+            {
+                <div class="permissions-grouped">
+                    @foreach (var group in groupedPermissions.Grouped.OrderBy(g => g.Key))
+                    {
+                        var visiblePermissions = group.Value.Where(p =>
+                            string.IsNullOrWhiteSpace(searchTerm) ||
+                            p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                            p.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+                            p.Action.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                        ).ToList();
+
+                        @if (visiblePermissions.Any())
+                        {
+                            <div class="permission-group">
+                                <div class="group-header">
+                                    <div class="group-title">
+                                        <span class="resource-icon">@GetResourceIcon(group.Key)</span>
+                                        <h3>@group.Key.ToUpper()</h3>
+                                    </div>
+                                    <span class="count-badge">@visiblePermissions.Count permission(s)</span>
+                                </div>
+
+                                <div class="permission-list">
+                                    @foreach (var permission in visiblePermissions.OrderBy(p => p.Action))
+                                    {
+                                        <div class="permission-item">
+                                            <div class="permission-main">
+                                                <div class="permission-header">
+                                                    <span class="permission-action">@permission.Action</span>
+                                                    <span class="permission-name-code">@permission.Name</span>
+                                                </div>
+                                                <p class="permission-description">@permission.Description</p>
+                                            </div>
+                                            <div class="permission-meta">
+                                                <span class="meta-badge">@permission.Resource:@permission.Action</span>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            <!-- Single Resource View -->
+            <div class="permission-group">
+                <div class="group-header">
+                    <div class="group-title">
+                        <span class="resource-icon">@GetResourceIcon(selectedResource)</span>
+                        <h3>@selectedResource.ToUpper()</h3>
+                    </div>
+                    <span class="count-badge">@filteredPermissions.Count permission(s)</span>
+                </div>
+
+                <div class="permission-list">
+                    @foreach (var permission in filteredPermissions.OrderBy(p => p.Action))
+                    {
+                        <div class="permission-item">
+                            <div class="permission-main">
+                                <div class="permission-header">
+                                    <span class="permission-action">@permission.Action</span>
+                                    <span class="permission-name-code">@permission.Name</span>
+                                </div>
+                                <p class="permission-description">@permission.Description</p>
+                            </div>
+                            <div class="permission-meta">
+                                <span class="meta-badge">@permission.Resource:@permission.Action</span>
+                                <small class="text-muted">ID: @permission.Id</small>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Quick Reference Table -->
+        <div class="quick-reference-section">
+            <h2>Quick Reference</h2>
+            <p class="subtitle">Common permission patterns</p>
+
+            <div class="reference-grid">
+                <div class="reference-card">
+                    <h4>View Permissions</h4>
+                    <p>Allow users to view/read resources</p>
+                    <div class="reference-examples">
+                        @foreach (var perm in permissions.Where(p => p.Action.Contains("view")).Take(3))
+                        {
+                            <span class="example-badge">@perm.Name</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="reference-card">
+                    <h4>Create Permissions</h4>
+                    <p>Allow users to create new resources</p>
+                    <div class="reference-examples">
+                        @foreach (var perm in permissions.Where(p => p.Action.Contains("create")).Take(3))
+                        {
+                            <span class="example-badge">@perm.Name</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="reference-card">
+                    <h4>Edit Permissions</h4>
+                    <p>Allow users to modify existing resources</p>
+                    <div class="reference-examples">
+                        @foreach (var perm in permissions.Where(p => p.Action.Contains("edit")).Take(3))
+                        {
+                            <span class="example-badge">@perm.Name</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="reference-card">
+                    <h4>Delete Permissions</h4>
+                    <p>Allow users to delete resources</p>
+                    <div class="reference-examples">
+                        @foreach (var perm in permissions.Where(p => p.Action.Contains("delete")).Take(3))
+                        {
+                            <span class="example-badge">@perm.Name</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private bool isAuthenticated = false;
+    private UserModel? currentUser;
+
+    private List<PermissionModel> permissions = new();
+    private List<PermissionModel> filteredPermissions = new();
+    private GroupedPermissionsResponse? groupedPermissions;
+
+    private string selectedResource = "all";
+    private string searchTerm = string.Empty;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isAuthenticated = await AuthService.IsAuthenticatedAsync();
+
+        if (isAuthenticated)
+        {
+            currentUser = await AuthService.GetCurrentUserAsync();
+        }
+
+        await LoadPermissions();
+        isLoading = false;
+    }
+
+    private async Task LoadPermissions()
+    {
+        try
+        {
+            errorMessage = null;
+            permissions = await ApiService.GetPermissionsAsync();
+            groupedPermissions = await ApiService.GetPermissionsGroupedAsync();
+            FilterPermissions();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load permissions: {ex.Message}";
+            permissions = new List<PermissionModel>();
+        }
+    }
+
+    private void FilterPermissions()
+    {
+        var query = permissions.AsEnumerable();
+
+        // Filter by resource
+        if (selectedResource != "all")
+        {
+            query = query.Where(p => p.Resource.Equals(selectedResource, StringComparison.OrdinalIgnoreCase));
+        }
+
+        // Filter by search term
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            query = query.Where(p =>
+                p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                p.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+                p.Action.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                p.Resource.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+            );
+        }
+
+        filteredPermissions = query.ToList();
+    }
+
+    private string GetResourceIcon(string resource)
+    {
+        return resource.ToLower() switch
+        {
+            "requests" => "📝",
+            "assets" => "🏢",
+            "users" => "👥",
+            "analytics" => "📊",
+            "feature_flags" => "🚩",
+            "roles" => "👤",
+            "permissions" => "🔑",
+            "system" => "⚙️",
+            _ => "📦"
+        };
+    }
+}
+
+<style>
+    .permissions-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .page-header {
+        margin-bottom: 30px;
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .header-content h1 {
+        margin: 0;
+        color: #1a1a1a;
+    }
+
+    .subtitle {
+        color: #666;
+        margin: 5px 0 0 0;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .summary-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .summary-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.2s;
+    }
+
+    .summary-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .card-icon {
+        font-size: 36px;
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+    }
+
+    .card-icon.total { background: #e3f2fd; }
+    .card-icon.resources { background: #f3e5f5; }
+    .card-icon.actions { background: #fff3e0; }
+
+    .card-content {
+        flex: 1;
+    }
+
+    .card-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: #1a1a1a;
+    }
+
+    .card-label {
+        font-size: 14px;
+        color: #666;
+        margin-top: 4px;
+    }
+
+    .filters {
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .filters label {
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .form-select, .form-control {
+        max-width: 250px;
+    }
+
+    .permissions-grouped {
+        display: grid;
+        gap: 24px;
+        margin-bottom: 40px;
+    }
+
+    .permission-group {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .group-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: white;
+    }
+
+    .group-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .resource-icon {
+        font-size: 32px;
+    }
+
+    .group-header h3 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 700;
+    }
+
+    .count-badge {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 6px 14px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .permission-list {
+        padding: 24px;
+        display: grid;
+        gap: 12px;
+    }
+
+    .permission-item {
+        padding: 16px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        background: #fafafa;
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        gap: 16px;
+        transition: all 0.2s;
+    }
+
+    .permission-item:hover {
+        border-color: #2196F3;
+        background: #f5f9ff;
+        transform: translateX(4px);
+    }
+
+    .permission-main {
+        flex: 1;
+    }
+
+    .permission-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 8px;
+    }
+
+    .permission-action {
+        background: #2196F3;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .permission-name-code {
+        color: #666;
+        font-size: 13px;
+        font-family: 'Courier New', monospace;
+    }
+
+    .permission-description {
+        color: #666;
+        margin: 0;
+        font-size: 14px;
+    }
+
+    .permission-meta {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 6px;
+    }
+
+    .meta-badge {
+        background: #f5f5f5;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        color: #555;
+        font-weight: 500;
+        font-family: 'Courier New', monospace;
+    }
+
+    .quick-reference-section {
+        background: white;
+        border-radius: 12px;
+        padding: 32px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-top: 40px;
+    }
+
+    .quick-reference-section h2 {
+        margin: 0 0 8px 0;
+        color: #1a1a1a;
+    }
+
+    .reference-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        margin-top: 24px;
+    }
+
+    .reference-card {
+        padding: 20px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        background: #fafafa;
+    }
+
+    .reference-card h4 {
+        margin: 0 0 8px 0;
+        color: #1a1a1a;
+        font-size: 18px;
+    }
+
+    .reference-card p {
+        color: #666;
+        margin: 0 0 12px 0;
+        font-size: 14px;
+    }
+
+    .reference-examples {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .example-badge {
+        background: white;
+        border: 1px solid #e0e0e0;
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        color: #555;
+        font-family: 'Courier New', monospace;
+    }
+
+    .no-data {
+        text-align: center;
+        padding: 60px 20px;
+        color: #666;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 400px;
+        gap: 20px;
+    }
+
+    .spinner-large {
+        width: 3rem;
+        height: 3rem;
+    }
+
+    @@media (max-width: 768px) {
+        .header-content {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .filters {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .form-select, .form-control {
+            max-width: 100%;
+            width: 100%;
+        }
+
+        .permission-item {
+            flex-direction: column;
+        }
+
+        .permission-meta {
+            align-items: flex-start;
+        }
+
+        .reference-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

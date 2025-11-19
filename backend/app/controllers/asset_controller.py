@@ -18,6 +18,7 @@ from app.services import AssetService
 from app.repositories import AssetRepository
 from app.schemas.asset_schemas import AssetCreateSchema, AssetUpdateSchema, AssetConditionUpdateSchema
 from app.middleware.auth import admin_required, technician_required
+from app.middleware.permissions import require_permission, require_any_permission
 from app.models.asset import AssetCategory, AssetStatus, AssetCondition
 
 # Create blueprint
@@ -35,6 +36,7 @@ asset_condition_schema = AssetConditionUpdateSchema()
 
 @asset_bp.route('', methods=['POST'])
 @admin_required()
+@require_permission("create_assets")
 def create_asset():
     """Create new asset (admin only)."""
     try:
@@ -67,6 +69,7 @@ def create_asset():
 
 @asset_bp.route('', methods=['GET'])
 @jwt_required()
+@require_permission("view_assets")
 def list_assets():
     """List all assets."""
     try:
@@ -78,6 +81,7 @@ def list_assets():
 
 @asset_bp.route('/<int:asset_id>', methods=['GET'])
 @jwt_required()
+@require_permission("view_assets")
 def get_asset(asset_id):
     """Get asset by ID."""
     try:
@@ -93,6 +97,7 @@ def get_asset(asset_id):
 
 @asset_bp.route('/<int:asset_id>/condition', methods=['PATCH'])
 @technician_required()
+@require_permission("update_asset_condition")
 def update_condition(asset_id):
     """Update asset condition (technician/admin)."""
     try:
@@ -111,6 +116,7 @@ def update_condition(asset_id):
 
 @asset_bp.route('/maintenance', methods=['GET'])
 @jwt_required()
+@require_any_permission("view_assets", "view_asset_history")
 def assets_needing_maintenance():
     """Get assets needing maintenance."""
     try:
@@ -126,6 +132,7 @@ def assets_needing_maintenance():
 
 @asset_bp.route('/statistics', methods=['GET'])
 @jwt_required()
+@require_permission("view_assets")
 def asset_statistics():
     """Get asset statistics."""
     try:

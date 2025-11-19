@@ -65,7 +65,14 @@ class User(BaseModel):
     # Status
     is_active = db.Column(db.Boolean, default=True, nullable=False)
 
-    # Relationships (will be defined when we create MaintenanceRequest model)
+    # Relationships
+    roles = db.relationship(
+        'Role',
+        secondary='user_roles',
+        primaryjoin='User.id == user_roles.c.user_id',
+        secondaryjoin='Role.id == user_roles.c.role_id',
+        back_populates='users'
+    )
     # submitted_requests = relationship with MaintenanceRequest
     # assigned_requests = relationship with MaintenanceRequest
 
@@ -213,3 +220,42 @@ class User(BaseModel):
         required_level = role_hierarchy.get(required_role, 0)
 
         return user_level >= required_level
+
+    def has_permission_by_name(self, permission_name):
+        """
+        Check if user has specific permission through assigned roles.
+
+        Args:
+            permission_name (str): Name of permission to check
+
+        Returns:
+            bool: True if user has permission
+        """
+        # Check if user has permission through any assigned role
+        for role in self.roles:
+            if role.has_permission(permission_name):
+                return True
+        return False
+
+    def get_all_permissions(self):
+        """
+        Get all unique permissions from user's roles.
+
+        Returns:
+            set: Set of permission names
+        """
+        permissions = set()
+        for role in self.roles:
+            for permission in role.permissions:
+                permissions.add(permission.name)
+        return permissions
+
+    def assign_role(self, role):
+        """Add role to user"""
+        if role not in self.roles:
+            self.roles.append(role)
+
+    def remove_role(self, role):
+        """Remove role from user"""
+        if role in self.roles:
+            self.roles.remove(role)

@@ -20,3 +20,21 @@
 
 ## Session: Wed Nov 12 12:37:53 SAST 2025
 
+
+## Session: Thu Nov 13 12:03:14 SAST 2025
+
+
+## Session: Thu Nov 13 15:42:34 SAST 2025
+
+
+## Session: Fri Nov 14 08:23:38 SAST 2025
+
+
+## Session: Fri Nov 14 11:52:44 SAST 2025
+
+
+## Session: Fri Nov 14 12:55:21 SAST 2025
+
+
+## Session: Wed Nov 19 11:41:22 SAST 2025
+

@@ -16,6 +16,7 @@ from app.services import UserService
 from app.repositories import UserRepository
 from app.schemas.user_schemas import UserUpdateSchema, PasswordChangeSchema
 from app.middleware.auth import admin_required, get_current_user, check_resource_owner
+from app.middleware.permissions import require_permission
 
 # Create blueprint
 user_bp = Blueprint('users', __name__, url_prefix='/api/v1/users')
@@ -31,6 +32,7 @@ password_change_schema = PasswordChangeSchema()
 
 @user_bp.route('', methods=['GET'])
 @admin_required()
+@require_permission("view_users")
 def list_users():
     """List all users (admin only)."""
     try:
@@ -107,6 +109,7 @@ def change_password(user_id):
 
 @user_bp.route('/technicians', methods=['GET'])
 @jwt_required()
+@require_permission("view_users")
 def list_technicians():
     """List available technicians."""
     try:

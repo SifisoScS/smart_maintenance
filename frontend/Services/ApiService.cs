@@ -602,5 +602,514 @@ namespace frontend.Services
                 return new FeatureFlagListResponse { Success = false, Error = $"Exception: {ex.Message}" };
             }
         }
+
+        // ============ Permission Endpoints ============
+
+        public async Task<List<PermissionModel>> GetPermissionsAsync()
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<ApiResponse>("/api/v1/permissions");
+
+                if (response?.Success == true && response.Data != null)
+                {
+                    var jsonElement = (System.Text.Json.JsonElement)response.Data;
+                    var permissions = System.Text.Json.JsonSerializer.Deserialize<List<PermissionModel>>(
+                        jsonElement.GetRawText(),
+                        new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    return permissions ?? new List<PermissionModel>();
+                }
+
+                return new List<PermissionModel>();
+            }
+            catch (Exception)
+            {
+                return new List<PermissionModel>();
+            }
+        }
+
+        public async Task<GroupedPermissionsResponse?> GetPermissionsGroupedAsync()
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<ApiResponse>("/api/v1/permissions/grouped");
+
+                if (response?.Success == true && response.Data != null)
+                {
+                    var jsonElement = (System.Text.Json.JsonElement)response.Data;
+                    var grouped = System.Text.Json.JsonSerializer.Deserialize<GroupedPermissionsResponse>(
+                        jsonElement.GetRawText(),
+                        new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    return grouped;
+                }
+
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public async Task<PermissionModel?> GetPermissionByIdAsync(int id)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<ApiResponse>($"/api/v1/permissions/{id}");
+
+                if (response?.Success == true && response.Data != null)
+                {
+                    var jsonElement = (System.Text.Json.JsonElement)response.Data;
+                    var permission = System.Text.Json.JsonSerializer.Deserialize<PermissionModel>(
+                        jsonElement.GetRawText(),
+                        new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    return permission;
+                }
+
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public async Task<ApiResponse> CreatePermissionAsync(CreatePermissionRequest request)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync("/api/v1/permissions", request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<ApiResponse>()
+                           ?? new ApiResponse { Success = false, Message = "Failed to create permission" };
+                }
+
+                var errorContent = await response.Content.ReadAsStringAsync();
+                return new ApiResponse
+                {
+                    Success = false,
+                    Message = $"Error {response.StatusCode}: {errorContent}"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse
+                {
+                    Success = false,
+                    Message = $"Exception: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<ApiResponse> UpdatePermissionAsync(int id, UpdatePermissionRequest request)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.PatchAsJsonAsync($"/api/v1/permissions/{id}", request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<ApiResponse>()
+                           ?? new ApiResponse { Success = false, Message = "Failed to update permission" };
+                }
+
+                var errorContent = await response.Content.ReadAsStringAsync();
+                return new ApiResponse
+                {
+                    Success = false,
+                    Message = $"Error {response.StatusCode}: {errorContent}"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse
+                {
+                    Success = false,
+                    Message = $"Exception: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<ApiResponse> DeletePermissionAsync(int id)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.DeleteAsync($"/api/v1/permissions/{id}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<ApiResponse>()
+                           ?? new ApiResponse { Success = false, Message = "Failed to delete permission" };
+                }
+
+                var errorContent = await response.Content.ReadAsStringAsync();
+                return new ApiResponse
+                {
+                    Success = false,
+                    Message = $"Error {response.StatusCode}: {errorContent}"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse
+                {
+                    Success = false,
+                    Message = $"Exception: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<CheckPermissionResponse?> CheckUserPermissionAsync(int userId, string permissionName)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<ApiResponse>($"/api/v1/permissions/check/{userId}/{permissionName}");
+
+                if (response?.Success == true && response.Data != null)
+                {
+                    var jsonElement = (System.Text.Json.JsonElement)response.Data;
+                    var result = System.Text.Json.JsonSerializer.Deserialize<CheckPermissionResponse>(
+                        jsonElement.GetRawText(),
+                        new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    return result;
+                }
+
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public async Task<UserPermissionsResponse?> GetUserPermissionsAsync(int userId)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<ApiResponse>($"/api/v1/permissions/user/{userId}");
+
+                if (response?.Success == true && response.Data != null)
+                {
+                    var jsonElement = (System.Text.Json.JsonElement)response.Data;
+                    var result = System.Text.Json.JsonSerializer.Deserialize<UserPermissionsResponse>(
+                        jsonElement.GetRawText(),
+                        new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    return result;
+                }
+
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        // ============ Role Endpoints ============
+
+        public async Task<List<RoleModel>> GetRolesAsync()
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<ApiResponse>("/api/v1/roles");
+
+                if (response?.Success == true && response.Data != null)
+                {
+                    var jsonElement = (System.Text.Json.JsonElement)response.Data;
+                    var roles = System.Text.Json.JsonSerializer.Deserialize<List<RoleModel>>(
+                        jsonElement.GetRawText(),
+                        new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    return roles ?? new List<RoleModel>();
+                }
+
+                return new List<RoleModel>();
+            }
+            catch (Exception)
+            {
+                return new List<RoleModel>();
+            }
+        }
+
+        public async Task<RoleModel?> GetRoleByIdAsync(int id)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<ApiResponse>($"/api/v1/roles/{id}");
+
+                if (response?.Success == true && response.Data != null)
+                {
+                    var jsonElement = (System.Text.Json.JsonElement)response.Data;
+                    var role = System.Text.Json.JsonSerializer.Deserialize<RoleModel>(
+                        jsonElement.GetRawText(),
+                        new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    return role;
+                }
+
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public async Task<ApiResponse> CreateRoleAsync(CreateRoleRequest request)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync("/api/v1/roles", request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<ApiResponse>()
+                           ?? new ApiResponse { Success = false, Message = "Failed to create role" };
+                }
+
+                var errorContent = await response.Content.ReadAsStringAsync();
+                return new ApiResponse
+                {
+                    Success = false,
+                    Message = $"Error {response.StatusCode}: {errorContent}"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse
+                {
+                    Success = false,
+                    Message = $"Exception: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<ApiResponse> UpdateRoleAsync(int id, UpdateRoleRequest request)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.PatchAsJsonAsync($"/api/v1/roles/{id}", request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<ApiResponse>()
+                           ?? new ApiResponse { Success = false, Message = "Failed to update role" };
+                }
+
+                var errorContent = await response.Content.ReadAsStringAsync();
+                return new ApiResponse
+                {
+                    Success = false,
+                    Message = $"Error {response.StatusCode}: {errorContent}"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse
+                {
+                    Success = false,
+                    Message = $"Exception: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<ApiResponse> DeleteRoleAsync(int id)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.DeleteAsync($"/api/v1/roles/{id}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<ApiResponse>()
+                           ?? new ApiResponse { Success = false, Message = "Failed to delete role" };
+                }
+
+                var errorContent = await response.Content.ReadAsStringAsync();
+                return new ApiResponse
+                {
+                    Success = false,
+                    Message = $"Error {response.StatusCode}: {errorContent}"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse
+                {
+                    Success = false,
+                    Message = $"Exception: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<ApiResponse> AddPermissionToRoleAsync(int roleId, AddPermissionToRoleRequest request)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync($"/api/v1/roles/{roleId}/permissions", request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<ApiResponse>()
+                           ?? new ApiResponse { Success = false, Message = "Failed to add permission to role" };
+                }
+
+                var errorContent = await response.Content.ReadAsStringAsync();
+                return new ApiResponse
+                {
+                    Success = false,
+                    Message = $"Error {response.StatusCode}: {errorContent}"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse
+                {
+                    Success = false,
+                    Message = $"Exception: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<ApiResponse> RemovePermissionFromRoleAsync(int roleId, int permissionId)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.DeleteAsync($"/api/v1/roles/{roleId}/permissions/{permissionId}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<ApiResponse>()
+                           ?? new ApiResponse { Success = false, Message = "Failed to remove permission from role" };
+                }
+
+                var errorContent = await response.Content.ReadAsStringAsync();
+                return new ApiResponse
+                {
+                    Success = false,
+                    Message = $"Error {response.StatusCode}: {errorContent}"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse
+                {
+                    Success = false,
+                    Message = $"Exception: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<RoleUsersResponse?> GetRoleUsersAsync(int roleId)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<ApiResponse>($"/api/v1/roles/{roleId}/users");
+
+                if (response?.Success == true && response.Data != null)
+                {
+                    var jsonElement = (System.Text.Json.JsonElement)response.Data;
+                    var result = System.Text.Json.JsonSerializer.Deserialize<RoleUsersResponse>(
+                        jsonElement.GetRawText(),
+                        new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    return result;
+                }
+
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public async Task<UserRolesResponse?> GetUserRolesAsync(int userId)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<ApiResponse>($"/api/v1/roles/user/{userId}");
+
+                if (response?.Success == true && response.Data != null)
+                {
+                    var jsonElement = (System.Text.Json.JsonElement)response.Data;
+                    var result = System.Text.Json.JsonSerializer.Deserialize<UserRolesResponse>(
+                        jsonElement.GetRawText(),
+                        new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    return result;
+                }
+
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public async Task<RoleAssignmentResponse?> AssignRoleToUserAsync(int userId, AssignRoleRequest request)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync($"/api/v1/roles/user/{userId}/assign", request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<RoleAssignmentResponse>();
+                }
+
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public async Task<RoleAssignmentResponse?> RemoveRoleFromUserAsync(int userId, int roleId)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.DeleteAsync($"/api/v1/roles/user/{userId}/remove/{roleId}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<RoleAssignmentResponse>();
+                }
+
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
     }
 }

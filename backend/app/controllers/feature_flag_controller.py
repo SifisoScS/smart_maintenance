@@ -10,6 +10,7 @@ from app.services.feature_flag_service import FeatureFlagService
 from app.repositories.feature_flag_repository import FeatureFlagRepository
 from app.middleware.auth import admin_required
 from app.middleware.feature_flags import get_enabled_features_for_user
+from app.middleware.permissions import require_permission
 from app.models.feature_flag import FeatureCategory
 
 # Create blueprint
@@ -21,6 +22,7 @@ feature_flag_service = FeatureFlagService()
 
 @feature_flag_bp.route('', methods=['GET'])
 @jwt_required()
+@require_permission("view_feature_flags")
 def list_feature_flags():
     """
     Get all feature flags.
@@ -39,6 +41,7 @@ def list_feature_flags():
 
 @feature_flag_bp.route('/enabled', methods=['GET'])
 @jwt_required()
+@require_permission("view_feature_flags")
 def list_enabled_flags():
     """
     Get all enabled feature flags.
@@ -84,6 +87,7 @@ def get_my_features():
 
 @feature_flag_bp.route('/<feature_key>', methods=['GET'])
 @jwt_required()
+@require_permission("view_feature_flags")
 def get_feature_flag(feature_key):
     """
     Get specific feature flag by key.
@@ -138,6 +142,7 @@ def check_feature_enabled(feature_key):
 
 @feature_flag_bp.route('', methods=['POST'])
 @admin_required()
+@require_permission("manage_feature_flags")
 def create_feature_flag():
     """
     Create a new feature flag (admin only).
@@ -192,6 +197,7 @@ def create_feature_flag():
 
 @feature_flag_bp.route('/<int:flag_id>', methods=['PATCH'])
 @admin_required()
+@require_permission("manage_feature_flags")
 def update_feature_flag(flag_id):
     """
     Update a feature flag (admin only).
@@ -234,6 +240,7 @@ def update_feature_flag(flag_id):
 
 @feature_flag_bp.route('/<int:flag_id>/toggle', methods=['POST'])
 @admin_required()
+@require_permission("toggle_feature_flags")
 def toggle_feature_flag(flag_id):
     """
     Toggle a feature flag on/off (admin only).
@@ -257,6 +264,7 @@ def toggle_feature_flag(flag_id):
 
 @feature_flag_bp.route('/<int:flag_id>', methods=['DELETE'])
 @admin_required()
+@require_permission("manage_feature_flags")
 def delete_feature_flag(flag_id):
     """
     Delete a feature flag (admin only).
@@ -280,6 +288,7 @@ def delete_feature_flag(flag_id):
 
 @feature_flag_bp.route('/category/<category>', methods=['GET'])
 @jwt_required()
+@require_permission("view_feature_flags")
 def get_flags_by_category(category):
     """
     Get feature flags by category.

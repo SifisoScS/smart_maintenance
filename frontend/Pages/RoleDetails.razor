@@ -1,0 +1,734 @@
+@page "/roles/{roleId:int}"
+@using frontend.Models
+@using frontend.Services.Interfaces
+@using Microsoft.JSInterop
+@inject IAuthService AuthService
+@inject IApiService ApiService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Role Details - Smart Maintenance</PageTitle>
+
+<div class="role-details-container">
+    @if (isLoading)
+    {
+        <div class="loading-container">
+            <div class="spinner-border spinner-large" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p>Loading role details...</p>
+        </div>
+    }
+    else if (!isAuthenticated || currentUser == null)
+    {
+        <div class="alert alert-warning">
+            <h4>⚠️ Authentication Required</h4>
+            <p>Please <a href="/login">sign in</a> to view role details.</p>
+        </div>
+    }
+    else if (currentUser.Role != "admin")
+    {
+        <div class="alert alert-danger">
+            <h4>🔒 Access Denied</h4>
+            <p>Only administrators can view role details.</p>
+        </div>
+    }
+    else if (role == null)
+    {
+        <div class="alert alert-danger">
+            <h4>❌ Role Not Found</h4>
+            <p>The requested role could not be found.</p>
+            <button class="btn btn-primary" @onclick='() => Navigation.NavigateTo("/roles")'>
+                ← Back to Roles
+            </button>
+        </div>
+    }
+    else
+    {
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a @onclick='() => Navigation.NavigateTo("/roles")'>Roles</a></li>
+                <li class="breadcrumb-item active">@role.Name</li>
+            </ol>
+        </nav>
+
+        <!-- Role Header -->
+        <div class="role-header-card">
+            <div class="role-title-section">
+                <div class="role-icon">👥</div>
+                <div>
+                    <h1>@role.Name</h1>
+                    <span class="role-badge @(role.IsSystem ? "badge-system" : "badge-custom")">
+                        @role.SystemBadge
+                    </span>
+                    <p class="role-description">@(role.Description ?? "No description available")</p>
+                </div>
+            </div>
+            <div class="role-stats-row">
+                <div class="stat-box">
+                    <div class="stat-value">@role.DisplayPermissionCount</div>
+                    <div class="stat-label">Permissions</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">@role.DisplayUserCount</div>
+                    <div class="stat-label">Users</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">@role.CreatedAt.ToString("MMM dd, yyyy")</div>
+                    <div class="stat-label">Created</div>
+                </div>
+            </div>
+        </div>
+
+        @if (errorMessage != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show">
+                <strong>Error:</strong> @errorMessage
+                <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+            </div>
+        }
+
+        @if (successMessage != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show">
+                <strong>Success:</strong> @successMessage
+                <button type="button" class="btn-close" @onclick="() => successMessage = null"></button>
+            </div>
+        }
+
+        <!-- Permission Matrix -->
+        <div class="permissions-matrix-section">
+            <div class="section-header">
+                <h2>Permission Matrix</h2>
+                <p class="subtitle">Manage permissions for this role</p>
+            </div>
+
+            @if (groupedPermissions != null && groupedPermissions.Grouped.Any())
+            {
+                <div class="permission-matrix">
+                    @foreach (var group in groupedPermissions.Grouped.OrderBy(g => g.Key))
+                    {
+                        <div class="permission-resource-group">
+                            <div class="resource-header">
+                                <h3>@group.Key.ToUpper()</h3>
+                                <span class="resource-count">@group.Value.Count permissions</span>
+                                @{
+                                    var groupSelected = group.Value.All(p => IsPermissionSelected(p.Id));
+                                    var someSelected = group.Value.Any(p => IsPermissionSelected(p.Id)) && !groupSelected;
+                                }
+                                @if (!role.IsSystem)
+                                {
+                                    <button class="btn btn-sm @(groupSelected ? "btn-outline-danger" : "btn-outline-primary")"
+                                            @onclick="() => ToggleGroupPermissions(group.Value, !groupSelected)">
+                                        @if (groupSelected)
+                                        {
+                                            <text>✕ Remove All</text>
+                                        }
+                                        else if (someSelected)
+                                        {
+                                            <text>✓ Add Remaining</text>
+                                        }
+                                        else
+                                        {
+                                            <text>✓ Add All</text>
+                                        }
+                                    </button>
+                                }
+                            </div>
+
+                            <div class="permission-grid">
+                                @foreach (var permission in group.Value.OrderBy(p => p.Action))
+                                {
+                                    var isSelected = IsPermissionSelected(permission.Id);
+                                    <div class="permission-checkbox-item @(isSelected ? "selected" : "")">
+                                        <label class="permission-checkbox-label">
+                                            <input type="checkbox"
+                                                   checked="@isSelected"
+                                                   disabled="@role.IsSystem"
+                                                   @onchange="@(() => TogglePermission(permission.Id, !isSelected))" />
+                                            <div class="permission-checkbox-content">
+                                                <strong>@permission.Action</strong>
+                                                <small>@permission.Description</small>
+                                            </div>
+                                        </label>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                @if (role.IsSystem)
+                {
+                    <div class="alert alert-info">
+                        ℹ️ This is a system role. Permissions cannot be modified.
+                    </div>
+                }
+            }
+            else if (allPermissions.Any())
+            {
+                <div class="permission-list-simple">
+                    @foreach (var permission in allPermissions.OrderBy(p => p.Resource).ThenBy(p => p.Action))
+                    {
+                        var isSelected = IsPermissionSelected(permission.Id);
+                        <div class="permission-item @(isSelected ? "selected" : "")">
+                            <label>
+                                <input type="checkbox"
+                                       checked="@isSelected"
+                                       disabled="@role.IsSystem"
+                                       @onchange="@(() => TogglePermission(permission.Id, !isSelected))" />
+                                <span class="permission-name">@permission.Name</span>
+                                <span class="permission-resource">@permission.Resource:@permission.Action</span>
+                            </label>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="no-data">
+                    <p>No permissions available.</p>
+                </div>
+            }
+        </div>
+
+        <!-- Assigned Users Section -->
+        <div class="assigned-users-section">
+            <div class="section-header">
+                <h2>Users with this Role</h2>
+                <p class="subtitle">@role.DisplayUserCount user(s) assigned</p>
+            </div>
+
+            @if (roleUsers != null && roleUsers.Users.Any())
+            {
+                <div class="users-grid">
+                    @foreach (var user in roleUsers.Users)
+                    {
+                        <div class="user-card">
+                            <div class="user-avatar">@user.FullName.Substring(0, 1).ToUpper()</div>
+                            <div class="user-info">
+                                <strong>@user.FullName</strong>
+                                <small>@user.Email</small>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="no-data">
+                    <p>No users currently assigned to this role.</p>
+                </div>
+            }
+        </div>
+
+        <!-- Actions -->
+        <div class="actions-section">
+            <button class="btn btn-secondary" @onclick='() => Navigation.NavigateTo("/roles")'>
+                ← Back to Roles
+            </button>
+            @if (!role.IsSystem)
+            {
+                <button class="btn btn-danger" @onclick="DeleteRole">
+                    🗑️ Delete Role
+                </button>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int RoleId { get; set; }
+
+    private bool isLoading = true;
+    private bool isAuthenticated = false;
+    private UserModel? currentUser;
+
+    private RoleModel? role;
+    private RoleUsersResponse? roleUsers;
+    private List<PermissionModel> allPermissions = new();
+    private GroupedPermissionsResponse? groupedPermissions;
+    private HashSet<int> selectedPermissionIds = new();
+
+    private string? errorMessage;
+    private string? successMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isAuthenticated = await AuthService.IsAuthenticatedAsync();
+
+        if (isAuthenticated)
+        {
+            currentUser = await AuthService.GetCurrentUserAsync();
+        }
+
+        await LoadRoleDetails();
+        isLoading = false;
+    }
+
+    private async Task LoadRoleDetails()
+    {
+        try
+        {
+            errorMessage = null;
+
+            // Load role with permissions
+            role = await ApiService.GetRoleByIdAsync(RoleId);
+
+            if (role != null)
+            {
+                // Load users with this role
+                roleUsers = await ApiService.GetRoleUsersAsync(RoleId);
+
+                // Load all available permissions
+                allPermissions = await ApiService.GetPermissionsAsync();
+                groupedPermissions = await ApiService.GetPermissionsGroupedAsync();
+
+                // Build selected permissions set
+                if (role.Permissions != null)
+                {
+                    selectedPermissionIds = role.Permissions.Select(p => p.Id).ToHashSet();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load role details: {ex.Message}";
+        }
+    }
+
+    private bool IsPermissionSelected(int permissionId)
+    {
+        return selectedPermissionIds.Contains(permissionId);
+    }
+
+    private async Task TogglePermission(int permissionId, bool add)
+    {
+        if (role == null || role.IsSystem) return;
+
+        try
+        {
+            errorMessage = null;
+            successMessage = null;
+
+            if (add)
+            {
+                var request = new AddPermissionToRoleRequest { PermissionId = permissionId };
+                var response = await ApiService.AddPermissionToRoleAsync(role.Id, request);
+
+                if (response.Success)
+                {
+                    selectedPermissionIds.Add(permissionId);
+                    successMessage = "Permission added successfully.";
+                }
+                else
+                {
+                    errorMessage = response.Message;
+                }
+            }
+            else
+            {
+                var response = await ApiService.RemovePermissionFromRoleAsync(role.Id, permissionId);
+
+                if (response.Success)
+                {
+                    selectedPermissionIds.Remove(permissionId);
+                    successMessage = "Permission removed successfully.";
+                }
+                else
+                {
+                    errorMessage = response.Message;
+                }
+            }
+
+            // Reload role to get updated permission count
+            role = await ApiService.GetRoleByIdAsync(RoleId);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to update permission: {ex.Message}";
+        }
+    }
+
+    private async Task ToggleGroupPermissions(List<PermissionModel> groupPermissions, bool add)
+    {
+        if (role == null || role.IsSystem) return;
+
+        try
+        {
+            errorMessage = null;
+            successMessage = null;
+
+            var tasks = new List<Task>();
+
+            foreach (var permission in groupPermissions)
+            {
+                if (add && !IsPermissionSelected(permission.Id))
+                {
+                    var request = new AddPermissionToRoleRequest { PermissionId = permission.Id };
+                    tasks.Add(ApiService.AddPermissionToRoleAsync(role.Id, request));
+                    selectedPermissionIds.Add(permission.Id);
+                }
+                else if (!add && IsPermissionSelected(permission.Id))
+                {
+                    tasks.Add(ApiService.RemovePermissionFromRoleAsync(role.Id, permission.Id));
+                    selectedPermissionIds.Remove(permission.Id);
+                }
+            }
+
+            await Task.WhenAll(tasks);
+
+            successMessage = add
+                ? $"Added {groupPermissions.Count} permissions successfully."
+                : $"Removed {groupPermissions.Count} permissions successfully.";
+
+            // Reload role to get updated permission count
+            role = await ApiService.GetRoleByIdAsync(RoleId);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to update permissions: {ex.Message}";
+        }
+    }
+
+    private async Task DeleteRole()
+    {
+        if (role == null || role.IsSystem) return;
+
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm",
+            $"Are you sure you want to delete the role '{role.Name}'? This action cannot be undone.");
+
+        if (!confirmed) return;
+
+        try
+        {
+            var response = await ApiService.DeleteRoleAsync(role.Id);
+            if (response.Success)
+            {
+                Navigation.NavigateTo("/roles");
+            }
+            else
+            {
+                errorMessage = response.Message;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to delete role: {ex.Message}";
+        }
+    }
+}
+
+<style>
+    .role-details-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .breadcrumb {
+        background: transparent;
+        padding: 0;
+        margin-bottom: 20px;
+    }
+
+    .breadcrumb-item a {
+        color: #2196F3;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .breadcrumb-item a:hover {
+        text-decoration: underline;
+    }
+
+    .role-header-card {
+        background: white;
+        border-radius: 12px;
+        padding: 32px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+
+    .role-title-section {
+        display: flex;
+        align-items: flex-start;
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+
+    .role-icon {
+        font-size: 48px;
+        width: 80px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #e3f2fd;
+        border-radius: 16px;
+    }
+
+    .role-title-section h1 {
+        margin: 0 0 8px 0;
+        font-size: 32px;
+        color: #1a1a1a;
+    }
+
+    .role-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+
+    .badge-system {
+        background: #f3e5f5;
+        color: #7b1fa2;
+    }
+
+    .badge-custom {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .role-description {
+        color: #666;
+        margin: 0;
+        font-size: 16px;
+    }
+
+    .role-stats-row {
+        display: flex;
+        gap: 32px;
+        padding-top: 24px;
+        border-top: 1px solid #eee;
+    }
+
+    .stat-box {
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 4px;
+    }
+
+    .stat-label {
+        font-size: 13px;
+        color: #666;
+    }
+
+    .permissions-matrix-section,
+    .assigned-users-section {
+        background: white;
+        border-radius: 12px;
+        padding: 32px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+
+    .section-header {
+        margin-bottom: 24px;
+    }
+
+    .section-header h2 {
+        margin: 0 0 8px 0;
+        color: #1a1a1a;
+    }
+
+    .subtitle {
+        color: #666;
+        margin: 0;
+    }
+
+    .permission-matrix {
+        display: grid;
+        gap: 24px;
+    }
+
+    .permission-resource-group {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .resource-header {
+        background: #f5f5f5;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .resource-header h3 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+        color: #1a1a1a;
+        flex: 1;
+    }
+
+    .resource-count {
+        color: #666;
+        font-size: 13px;
+    }
+
+    .permission-grid {
+        padding: 20px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 12px;
+    }
+
+    .permission-checkbox-item {
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 12px;
+        transition: all 0.2s;
+    }
+
+    .permission-checkbox-item:hover {
+        border-color: #2196F3;
+        background: #f5f9ff;
+    }
+
+    .permission-checkbox-item.selected {
+        border-color: #2196F3;
+        background: #e3f2fd;
+    }
+
+    .permission-checkbox-label {
+        display: flex;
+        align-items: start;
+        gap: 12px;
+        cursor: pointer;
+        margin: 0;
+    }
+
+    .permission-checkbox-label input[type="checkbox"] {
+        margin-top: 4px;
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    .permission-checkbox-label input[type="checkbox"]:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    .permission-checkbox-content {
+        flex: 1;
+    }
+
+    .permission-checkbox-content strong {
+        display: block;
+        color: #1a1a1a;
+        margin-bottom: 4px;
+        text-transform: capitalize;
+    }
+
+    .permission-checkbox-content small {
+        color: #666;
+        font-size: 12px;
+    }
+
+    .users-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 16px;
+    }
+
+    .user-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        background: #fafafa;
+    }
+
+    .user-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: #2196F3;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 18px;
+    }
+
+    .user-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .user-info strong {
+        color: #1a1a1a;
+    }
+
+    .user-info small {
+        color: #666;
+        font-size: 13px;
+    }
+
+    .actions-section {
+        display: flex;
+        gap: 12px;
+        justify-content: space-between;
+    }
+
+    .no-data {
+        text-align: center;
+        padding: 40px 20px;
+        color: #666;
+    }
+
+    .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 400px;
+        gap: 20px;
+    }
+
+    .spinner-large {
+        width: 3rem;
+        height: 3rem;
+    }
+
+    @@media (max-width: 768px) {
+        .role-title-section {
+            flex-direction: column;
+        }
+
+        .role-stats-row {
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .permission-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .users-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .actions-section {
+            flex-direction: column;
+        }
+    }
+</style>
