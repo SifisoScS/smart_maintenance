@@ -140,7 +140,7 @@ class TenantService:
             subscription = TenantSubscription(
                 tenant_id=tenant.id,
                 plan=plan,
-                status=SubscriptionStatus.TRIAL,
+                status=SubscriptionStatus.ACTIVE,
                 billing_cycle=BillingCycle.MONTHLY,
                 price=plan_details['price'],
                 currency='USD',
@@ -240,23 +240,30 @@ class TenantService:
 
             # Create and assign permissions
             for perm_name in role_data['permissions']:
-                # Parse permission name to get resource and action
-                parts = perm_name.split('_', 1)
-                if len(parts) == 2:
-                    action, resource = parts
-                else:
-                    action, resource = 'view', perm_name
-
-                # Create permission for this tenant
-                permission = Permission(
+                # Check if permission already exists for this tenant
+                permission = Permission.query.filter_by(
                     name=perm_name,
-                    description=f'{action.capitalize()} {resource}',
-                    resource=resource,
-                    action=action,
                     tenant_id=tenant_id
-                )
-                db.session.add(permission)
-                db.session.flush()
+                ).first()
+
+                if not permission:
+                    # Parse permission name to get resource and action
+                    parts = perm_name.split('_', 1)
+                    if len(parts) == 2:
+                        action, resource = parts
+                    else:
+                        action, resource = 'view', perm_name
+
+                    # Create permission for this tenant
+                    permission = Permission(
+                        name=perm_name,
+                        description=f'{action.capitalize()} {resource}',
+                        resource=resource,
+                        action=action,
+                        tenant_id=tenant_id
+                    )
+                    db.session.add(permission)
+                    db.session.flush()
 
                 # Assign to role
                 role.permissions.append(permission)

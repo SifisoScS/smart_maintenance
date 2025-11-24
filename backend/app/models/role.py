@@ -12,9 +12,12 @@ class Role(db.Model):
     Roles can be assigned to users for access control
     """
     __tablename__ = 'roles'
+    __table_args__ = (
+        db.UniqueConstraint('name', 'tenant_id', name='uq_role_name_tenant'),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True, nullable=False, index=True)
+    name = db.Column(db.String(100), nullable=False, index=True)
     description = db.Column(db.Text)
     is_system = db.Column(db.Boolean, default=False)  # System roles can't be deleted
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

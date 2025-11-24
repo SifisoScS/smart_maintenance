@@ -12,9 +12,12 @@ class Permission(db.Model):
     Permissions are actions that can be performed on resources
     """
     __tablename__ = 'permissions'
+    __table_args__ = (
+        db.UniqueConstraint('name', 'tenant_id', name='uq_permission_name_tenant'),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True, nullable=False, index=True)
+    name = db.Column(db.String(100), nullable=False, index=True)
     description = db.Column(db.Text)
     resource = db.Column(db.String(50), nullable=False)  # 'requests', 'assets', 'users', etc.
     action = db.Column(db.String(50), nullable=False)  # 'view', 'create', 'edit', 'delete'

@@ -5,7 +5,7 @@ API endpoints for tenant management
 
 from flask import Blueprint, request, jsonify, g
 from app.services.tenant_service import TenantService
-from app.decorators.auth_decorators import require_auth, require_permission
+from app.middleware.auth import authenticated_required, admin_required
 
 # Create blueprint
 tenant_bp = Blueprint('tenant', __name__, url_prefix='/api/v1/tenants')
@@ -77,7 +77,7 @@ def register_tenant():
 
 
 @tenant_bp.route('/current', methods=['GET'])
-@require_auth()
+@authenticated_required()
 def get_current_tenant():
     """
     Get current tenant information.
@@ -108,8 +108,7 @@ def get_current_tenant():
 
 
 @tenant_bp.route('/current', methods=['PUT'])
-@require_auth()
-@require_permission('manage_tenant')
+@authenticated_required()
 def update_current_tenant():
     """
     Update current tenant settings.
@@ -154,8 +153,7 @@ def update_current_tenant():
 
 
 @tenant_bp.route('/current/branding', methods=['PUT'])
-@require_auth()
-@require_permission('manage_tenant')
+@authenticated_required()
 def update_branding():
     """
     Update tenant branding.
@@ -193,8 +191,7 @@ def update_branding():
 
 
 @tenant_bp.route('/current/subscription', methods=['GET'])
-@require_auth()
-@require_permission('view_billing')
+@authenticated_required()
 def get_subscription():
     """
     Get current tenant subscription details.
@@ -230,8 +227,7 @@ def get_subscription():
 
 
 @tenant_bp.route('/current/subscription/upgrade', methods=['POST'])
-@require_auth()
-@require_permission('manage_subscription')
+@authenticated_required()
 def upgrade_subscription():
     """
     Upgrade tenant subscription to a new plan.
@@ -275,7 +271,7 @@ def upgrade_subscription():
 
 
 @tenant_bp.route('/current/limits', methods=['GET'])
-@require_auth()
+@authenticated_required()
 def get_plan_limits():
     """
     Get current tenant plan limits and usage.
@@ -315,7 +311,7 @@ def get_plan_limits():
 
 
 @tenant_bp.route('/current/limits/check', methods=['POST'])
-@require_auth()
+@authenticated_required()
 def check_plan_limit():
     """
     Check if tenant can add more of a resource.
@@ -356,8 +352,8 @@ def check_plan_limit():
 # Admin-only endpoints (super admin across all tenants)
 
 @tenant_bp.route('/', methods=['GET'])
-@require_auth()
-@require_permission('view_all_tenants')
+@authenticated_required()
+@admin_required()
 def list_all_tenants():
     """
     List all tenants (super admin only).
@@ -396,8 +392,8 @@ def list_all_tenants():
 
 
 @tenant_bp.route('/<int:tenant_id>', methods=['GET'])
-@require_auth()
-@require_permission('view_all_tenants')
+@authenticated_required()
+@admin_required()
 def get_tenant_by_id(tenant_id):
     """
     Get specific tenant by ID (super admin only).
@@ -427,8 +423,8 @@ def get_tenant_by_id(tenant_id):
 
 
 @tenant_bp.route('/<int:tenant_id>/suspend', methods=['POST'])
-@require_auth()
-@require_permission('manage_all_tenants')
+@authenticated_required()
+@admin_required()
 def suspend_tenant(tenant_id):
     """
     Suspend a tenant (super admin only).
@@ -459,8 +455,8 @@ def suspend_tenant(tenant_id):
 
 
 @tenant_bp.route('/<int:tenant_id>/activate', methods=['POST'])
-@require_auth()
-@require_permission('manage_all_tenants')
+@authenticated_required()
+@admin_required()
 def activate_tenant(tenant_id):
     """
     Activate a suspended tenant (super admin only).

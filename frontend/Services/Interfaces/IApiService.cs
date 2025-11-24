@@ -1,4 +1,5 @@
 using frontend.Models;
+using SmartMaintenance.Blazor.Models;
 
 namespace frontend.Services.Interfaces
 {
@@ -150,5 +151,18 @@ namespace frontend.Services.Interfaces
         Task<UserRolesResponse?> GetUserRolesAsync(int userId);
         Task<RoleAssignmentResponse?> AssignRoleToUserAsync(int userId, AssignRoleRequest request);
         Task<RoleAssignmentResponse?> RemoveRoleFromUserAsync(int userId, int roleId);
+
+        // ============ Tenant Endpoints ============
+
+        Task<TenantWithUsageModel?> GetCurrentTenantAsync();
+        Task<ApiResponse?> RegisterTenantAsync(TenantRegistrationModel request);
+        Task<List<TenantModel>> GetAllTenantsAsync(string? status = null, string? plan = null, int? limit = null);
+        Task<TenantWithUsageModel?> GetTenantByIdAsync(int tenantId);
+        Task<ApiResponse?> UpdateTenantSettingsAsync(TenantSettingsModel settings);
+        Task<ApiResponse?> UpdateTenantBrandingAsync(TenantBrandingModel branding);
+        Task<TenantSubscriptionModel?> GetSubscriptionAsync();
+        Task<ApiResponse?> UpgradeSubscriptionAsync(SubscriptionUpgradeModel upgrade);
+        Task<ApiResponse?> SuspendTenantAsync(int tenantId, string reason);
+        Task<ApiResponse?> ActivateTenantAsync(int tenantId);
     }
 }
