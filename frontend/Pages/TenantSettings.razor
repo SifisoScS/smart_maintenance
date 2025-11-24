@@ -1,0 +1,983 @@
+@page "/tenant/settings"
+@using SmartMaintenance.Blazor.Models
+@using frontend.Services.Interfaces
+@inject IApiService ApiService
+@inject NavigationManager Navigation
+@inject IToastService ToastService
+@attribute [Authorize]
+
+<PageTitle>Organization Settings - Smart Maintenance</PageTitle>
+
+<div class="tenant-settings-page">
+    <div class="page-header">
+        <h1>🏢 Organization Settings</h1>
+        <p class="page-subtitle">Manage your organization details, branding, and subscription</p>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="loading-container">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p>Loading organization details...</p>
+        </div>
+    }
+    else if (tenant == null)
+    {
+        <div class="alert alert-danger">
+            Failed to load organization details. Please try again.
+        </div>
+    }
+    else
+    {
+        <div class="settings-container">
+            <!-- Usage Statistics Card -->
+            <div class="settings-card">
+                <div class="card-header">
+                    <h3>📊 Usage & Limits</h3>
+                    <span class="badge badge-@GetPlanBadgeClass()">@tenant.Plan.ToUpper()</span>
+                </div>
+                <div class="card-body">
+                    @if (tenant.Usage != null)
+                    {
+                        <!-- Users Usage -->
+                        <div class="usage-item">
+                            <div class="usage-header">
+                                <span class="usage-label">👥 Users</span>
+                                <span class="usage-value">@tenant.Usage.Users.Current / @(tenant.Usage.Users.Limit?.ToString() ?? "∞")</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: @(tenant.Usage.Users.PercentageUsed?.ToString("F0") ?? "0")%"></div>
+                            </div>
+                            @if (tenant.Usage.Users.AtLimit)
+                            {
+                                <small class="text-danger">⚠️ Limit reached - Upgrade to add more users</small>
+                            }
+                        </div>
+
+                        <!-- Assets Usage -->
+                        <div class="usage-item">
+                            <div class="usage-header">
+                                <span class="usage-label">🔧 Assets</span>
+                                <span class="usage-value">@tenant.Usage.Assets.Current / @(tenant.Usage.Assets.Limit?.ToString() ?? "∞")</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: @(tenant.Usage.Assets.PercentageUsed?.ToString("F0") ?? "0")%"></div>
+                            </div>
+                            @if (tenant.Usage.Assets.AtLimit)
+                            {
+                                <small class="text-danger">⚠️ Limit reached - Upgrade to add more assets</small>
+                            }
+                        </div>
+
+                        <!-- Requests Usage -->
+                        <div class="usage-item">
+                            <div class="usage-header">
+                                <span class="usage-label">📋 Requests (This Month)</span>
+                                <span class="usage-value">@tenant.Usage.Requests.Current / @(tenant.Usage.Requests.Limit?.ToString() ?? "∞")</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: @(tenant.Usage.Requests.PercentageUsed?.ToString("F0") ?? "0")%"></div>
+                            </div>
+                            @if (tenant.Usage.Requests.AtLimit)
+                            {
+                                <small class="text-danger">⚠️ Limit reached - Resets next month or upgrade now</small>
+                            }
+                        </div>
+                    }
+
+                    <button class="btn btn-primary mt-3" @onclick="() => showUpgradeModal = true">
+                        🚀 Upgrade Plan
+                    </button>
+                </div>
+            </div>
+
+            <!-- Organization Details Card -->
+            <div class="settings-card">
+                <div class="card-header">
+                    <h3>📝 Organization Details</h3>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="@settingsModel" OnValidSubmit="SaveSettings">
+                        <div class="form-group">
+                            <label for="orgName">Organization Name</label>
+                            <InputText id="orgName"
+                                      @bind-Value="settingsModel.Name"
+                                      class="form-control"
+                                      placeholder="Acme Corporation" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="subdomain">Subdomain</label>
+                            <div class="input-display">
+                                <strong>@tenant.Subdomain</strong>.smartmaintenance.com
+                            </div>
+                            <small class="form-text">Contact support to change your subdomain</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="contactName">Contact Name</label>
+                            <InputText id="contactName"
+                                      @bind-Value="settingsModel.ContactName"
+                                      class="form-control"
+                                      placeholder="John Smith" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="billingEmail">Billing Email</label>
+                            <InputText id="billingEmail"
+                                      type="email"
+                                      @bind-Value="settingsModel.BillingEmail"
+                                      class="form-control"
+                                      placeholder="billing@acme.com" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="contactPhone">Contact Phone</label>
+                            <InputText id="contactPhone"
+                                      @bind-Value="settingsModel.ContactPhone"
+                                      class="form-control"
+                                      placeholder="+1 (555) 123-4567" />
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                            @if (isSaving)
+                            {
+                                <span class="spinner-border spinner-border-sm"></span>
+                                <span> Saving...</span>
+                            }
+                            else
+                            {
+                                <span>💾 Save Changes</span>
+                            }
+                        </button>
+                    </EditForm>
+                </div>
+            </div>
+
+            <!-- Branding Card -->
+            <div class="settings-card">
+                <div class="card-header">
+                    <h3>🎨 Branding</h3>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="@brandingModel" OnValidSubmit="SaveBranding">
+                        <div class="form-group">
+                            <label for="logoUrl">Logo URL</label>
+                            <InputText id="logoUrl"
+                                      @bind-Value="brandingModel.LogoUrl"
+                                      class="form-control"
+                                      placeholder="https://example.com/logo.png" />
+                            <small class="form-text">Enter a URL to your organization's logo</small>
+                            @if (!string.IsNullOrEmpty(brandingModel.LogoUrl))
+                            {
+                                <div class="logo-preview">
+                                    <img src="@brandingModel.LogoUrl" alt="Logo Preview" />
+                                </div>
+                            }
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="primaryColor">Primary Color</label>
+                                <div class="color-picker-group">
+                                    <input type="color"
+                                           id="primaryColor"
+                                           @bind="brandingModel.PrimaryColor"
+                                           class="color-picker" />
+                                    <InputText @bind-Value="brandingModel.PrimaryColor"
+                                              class="form-control color-input"
+                                              placeholder="#667eea" />
+                                </div>
+                                <div class="color-preview" style="background-color: @brandingModel.PrimaryColor"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="secondaryColor">Secondary Color</label>
+                                <div class="color-picker-group">
+                                    <input type="color"
+                                           id="secondaryColor"
+                                           @bind="brandingModel.SecondaryColor"
+                                           class="color-picker" />
+                                    <InputText @bind-Value="brandingModel.SecondaryColor"
+                                              class="form-control color-input"
+                                              placeholder="#764ba2" />
+                                </div>
+                                <div class="color-preview" style="background-color: @brandingModel.SecondaryColor"></div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" disabled="@isSavingBranding">
+                            @if (isSavingBranding)
+                            {
+                                <span class="spinner-border spinner-border-sm"></span>
+                                <span> Saving...</span>
+                            }
+                            else
+                            {
+                                <span>🎨 Save Branding</span>
+                            }
+                        </button>
+                    </EditForm>
+                </div>
+            </div>
+
+            <!-- Subscription Card -->
+            @if (subscription != null)
+            {
+                <div class="settings-card">
+                    <div class="card-header">
+                        <h3>💳 Subscription</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="subscription-info">
+                            <div class="info-row">
+                                <span class="info-label">Plan:</span>
+                                <span class="info-value">@subscription.Plan.ToUpper()</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Status:</span>
+                                <span class="badge badge-@GetSubscriptionStatusBadge()">@subscription.Status.ToUpper()</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Billing Cycle:</span>
+                                <span class="info-value">@subscription.BillingCycle</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Price:</span>
+                                <span class="info-value">@subscription.Currency @subscription.Price.ToString("F2")</span>
+                            </div>
+                            @if (subscription.CurrentPeriodEnd.HasValue)
+                            {
+                                <div class="info-row">
+                                    <span class="info-label">Renewal Date:</span>
+                                    <span class="info-value">@subscription.CurrentPeriodEnd.Value.ToString("MMM dd, yyyy")</span>
+                                </div>
+                                @if (subscription.DaysUntilRenewal.HasValue)
+                                {
+                                    <div class="info-row">
+                                        <span class="info-label">Days Until Renewal:</span>
+                                        <span class="info-value">@subscription.DaysUntilRenewal days</span>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Upgrade Modal -->
+    @if (showUpgradeModal)
+    {
+        <div class="modal-overlay" @onclick="() => showUpgradeModal = false">
+            <div class="modal-content" @onclick:stopPropagation="true">
+                <div class="modal-header">
+                    <h3>🚀 Upgrade Your Plan</h3>
+                    <button class="close-button" @onclick="() => showUpgradeModal = false">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="plans-grid">
+                        @foreach (var plan in availablePlans.Where(p => p.Id != tenant.Plan))
+                        {
+                            <div class="plan-card @(plan.IsPopular ? "popular" : "")">
+                                @if (plan.IsPopular)
+                                {
+                                    <div class="popular-badge">Recommended</div>
+                                }
+                                <h4>@plan.Name</h4>
+                                <div class="plan-price">
+                                    <span class="price">$@plan.Price</span>
+                                    <span class="period">/month</span>
+                                </div>
+                                <ul class="plan-features">
+                                    <li>👥 @(plan.MaxUsers?.ToString() ?? "Unlimited") Users</li>
+                                    <li>🔧 @(plan.MaxAssets?.ToString() ?? "Unlimited") Assets</li>
+                                    <li>📋 @(plan.MaxRequestsPerMonth?.ToString() ?? "Unlimited") Requests/mo</li>
+                                    @foreach (var feature in plan.Features)
+                                    {
+                                        <li>✓ @feature</li>
+                                    }
+                                </ul>
+                                <button class="btn btn-primary" @onclick="() => UpgradeToPlan(plan.Id)">
+                                    Upgrade to @plan.Name
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .tenant-settings-page {
+        padding: 30px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        margin-bottom: 30px;
+    }
+
+    .page-header h1 {
+        font-size: 32px;
+        font-weight: 800;
+        color: #1f2937;
+        margin-bottom: 8px;
+    }
+
+    .page-subtitle {
+        color: #6b7280;
+        font-size: 16px;
+        margin: 0;
+    }
+
+    .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        text-align: center;
+    }
+
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+        border: 4px solid #e5e7eb;
+        border-right-color: #4f46e5;
+        border-radius: 50%;
+        display: inline-block;
+        animation: spinner-border 0.75s linear infinite;
+        margin-bottom: 20px;
+    }
+
+    .spinner-border-sm {
+        width: 0.875rem;
+        height: 0.875rem;
+        border-width: 0.2em;
+        margin-bottom: 0;
+        margin-right: 8px;
+    }
+
+    @@keyframes spinner-border {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+    }
+
+    .settings-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 24px;
+    }
+
+    .settings-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .card-header {
+        padding: 20px;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-header h3 {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0;
+    }
+
+    .card-body {
+        padding: 24px;
+    }
+
+    .badge {
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .badge-free {
+        background: #e0e7ff;
+        color: #4338ca;
+    }
+
+    .badge-basic {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .badge-premium {
+        background: #fef3c7;
+        color: #b45309;
+    }
+
+    .badge-enterprise {
+        background: #f3e8ff;
+        color: #7c3aed;
+    }
+
+    .badge-trial, .badge-active {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .badge-suspended, .badge-past_due {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .badge-cancelled {
+        background: #f3f4f6;
+        color: #6b7280;
+    }
+
+    /* Usage Statistics */
+    .usage-item {
+        margin-bottom: 24px;
+    }
+
+    .usage-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .usage-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .usage-label {
+        font-weight: 600;
+        color: #374151;
+        font-size: 14px;
+    }
+
+    .usage-value {
+        font-weight: 700;
+        color: #1f2937;
+        font-size: 14px;
+    }
+
+    .progress-bar {
+        height: 10px;
+        background: #e5e7eb;
+        border-radius: 5px;
+        overflow: hidden;
+        margin-bottom: 6px;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4f46e5, #7c3aed);
+        transition: width 0.3s;
+    }
+
+    /* Form Styles */
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #374151;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px 14px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.2s;
+        box-sizing: border-box;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .form-text {
+        display: block;
+        margin-top: 6px;
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .input-display {
+        padding: 10px 14px;
+        background: #f9fafb;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        color: #1f2937;
+    }
+
+    /* Color Picker */
+    .color-picker-group {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .color-picker {
+        width: 50px;
+        height: 40px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .color-input {
+        flex: 1;
+    }
+
+    .color-preview {
+        height: 40px;
+        border-radius: 8px;
+        border: 2px solid #e5e7eb;
+    }
+
+    .logo-preview {
+        margin-top: 12px;
+        padding: 12px;
+        background: #f9fafb;
+        border: 2px dashed #e5e7eb;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .logo-preview img {
+        max-width: 200px;
+        max-height: 100px;
+        object-fit: contain;
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-primary {
+        background-color: #4f46e5;
+        color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        background-color: #4338ca;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+    }
+
+    .btn-primary:disabled {
+        background-color: #9ca3af;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .mt-3 {
+        margin-top: 16px;
+    }
+
+    /* Subscription Info */
+    .subscription-info {
+        background: #f9fafb;
+        border-radius: 8px;
+        padding: 20px;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .info-value {
+        font-weight: 700;
+        color: #1f2937;
+        font-size: 14px;
+    }
+
+    /* Modal */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 20px;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 16px;
+        max-width: 900px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header {
+        padding: 24px;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-header h3 {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0;
+    }
+
+    .close-button {
+        background: none;
+        border: none;
+        font-size: 32px;
+        color: #9ca3af;
+        cursor: pointer;
+        line-height: 1;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+    }
+
+    .close-button:hover {
+        color: #1f2937;
+    }
+
+    .modal-body {
+        padding: 24px;
+    }
+
+    /* Plans Grid (Modal) */
+    .plans-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .plan-card {
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 24px;
+        position: relative;
+        text-align: center;
+    }
+
+    .plan-card.popular {
+        border-color: #f59e0b;
+    }
+
+    .popular-badge {
+        position: absolute;
+        top: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #f59e0b;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .plan-card h4 {
+        font-size: 20px;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 12px;
+    }
+
+    .plan-price {
+        margin-bottom: 20px;
+    }
+
+    .price {
+        font-size: 36px;
+        font-weight: 800;
+        color: #4f46e5;
+    }
+
+    .period {
+        font-size: 14px;
+        color: #6b7280;
+    }
+
+    .plan-features {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 20px 0;
+        text-align: left;
+    }
+
+    .plan-features li {
+        padding: 6px 0;
+        font-size: 14px;
+        color: #374151;
+    }
+
+    .alert {
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+
+    .alert-danger {
+        background-color: #fef2f2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+
+    .text-danger {
+        color: #dc2626;
+        font-size: 12px;
+        margin-top: 4px;
+        display: block;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .settings-container {
+            grid-template-columns: 1fr;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .plans-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+@code {
+    private TenantWithUsageModel? tenant;
+    private TenantSubscriptionModel? subscription;
+    private TenantSettingsModel settingsModel = new();
+    private TenantBrandingModel brandingModel = new();
+    private List<SubscriptionPlanInfo> availablePlans = new();
+
+    private bool isLoading = true;
+    private bool isSaving = false;
+    private bool isSavingBranding = false;
+    private bool showUpgradeModal = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        availablePlans = SubscriptionPlanInfo.GetAllPlans();
+        await LoadTenantData();
+    }
+
+    private async Task LoadTenantData()
+    {
+        isLoading = true;
+        try
+        {
+            // Load tenant with usage
+            tenant = await ApiService.GetCurrentTenantAsync();
+
+            if (tenant != null)
+            {
+                // Populate settings model
+                settingsModel.Name = tenant.Name;
+                settingsModel.BillingEmail = tenant.BillingEmail;
+                settingsModel.ContactName = tenant.ContactName;
+                settingsModel.ContactPhone = tenant.ContactPhone;
+
+                // Populate branding model
+                brandingModel.LogoUrl = tenant.LogoUrl;
+                brandingModel.PrimaryColor = tenant.PrimaryColor;
+                brandingModel.SecondaryColor = tenant.SecondaryColor;
+
+                // Load subscription
+                subscription = await ApiService.GetSubscriptionAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError("Failed to load organization details");
+            Console.WriteLine($"Load error: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task SaveSettings()
+    {
+        isSaving = true;
+        try
+        {
+            var response = await ApiService.UpdateTenantSettingsAsync(settingsModel);
+
+            if (response?.Success == true)
+            {
+                ToastService.ShowSuccess("Settings saved successfully");
+                await LoadTenantData(); // Reload to get updated data
+            }
+            else
+            {
+                ToastService.ShowError(response?.Message ?? "Failed to save settings");
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError("An error occurred while saving settings");
+            Console.WriteLine($"Save error: {ex.Message}");
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task SaveBranding()
+    {
+        isSavingBranding = true;
+        try
+        {
+            var response = await ApiService.UpdateTenantBrandingAsync(brandingModel);
+
+            if (response?.Success == true)
+            {
+                ToastService.ShowSuccess("Branding saved successfully");
+                await LoadTenantData(); // Reload to get updated data
+                // TODO: Apply branding dynamically
+            }
+            else
+            {
+                ToastService.ShowError(response?.Message ?? "Failed to save branding");
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError("An error occurred while saving branding");
+            Console.WriteLine($"Save branding error: {ex.Message}");
+        }
+        finally
+        {
+            isSavingBranding = false;
+        }
+    }
+
+    private async Task UpgradeToPlan(string planId)
+    {
+        try
+        {
+            var upgradeModel = new SubscriptionUpgradeModel
+            {
+                Plan = planId,
+                BillingCycle = "monthly"
+            };
+
+            var response = await ApiService.UpgradeSubscriptionAsync(upgradeModel);
+
+            if (response?.Success == true)
+            {
+                ToastService.ShowSuccess($"Successfully upgraded to {planId} plan!");
+                showUpgradeModal = false;
+                await LoadTenantData(); // Reload to get updated data
+            }
+            else
+            {
+                ToastService.ShowError(response?.Message ?? "Failed to upgrade plan");
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError("An error occurred while upgrading plan");
+            Console.WriteLine($"Upgrade error: {ex.Message}");
+        }
+    }
+
+    private string GetPlanBadgeClass()
+    {
+        if (tenant == null) return "free";
+        return tenant.Plan.ToLower() switch
+        {
+            "free" => "free",
+            "basic" => "basic",
+            "premium" => "premium",
+            "enterprise" => "enterprise",
+            _ => "free"
+        };
+    }
+
+    private string GetSubscriptionStatusBadge()
+    {
+        if (subscription == null) return "trial";
+        return subscription.Status.ToLower();
+    }
+}

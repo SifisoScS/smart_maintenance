@@ -23,6 +23,7 @@ builder.Services.AddBlazoredToast();
 // Register services with Dependency Injection
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IApiService, ApiService>();
+builder.Services.AddScoped<ITenantBrandingService, TenantBrandingService>();
 
 // Add authorization (for @attribute [Authorize])
 builder.Services.AddAuthorizationCore();

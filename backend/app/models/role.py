@@ -20,6 +20,10 @@ class Role(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    # Multi-Tenancy
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id'), nullable=True, index=True)
+    tenant = db.relationship('Tenant', backref='roles')
+
     # Relationships
     permissions = db.relationship('Permission', secondary='role_permissions', back_populates='roles')
     users = db.relationship(

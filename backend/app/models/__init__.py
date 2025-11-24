@@ -19,6 +19,8 @@ from app.models.request import (
     RequestType
 )
 from app.models.feature_flag import FeatureFlag, FeatureCategory, Features
+from app.models.tenant import Tenant, TenantStatus, SubscriptionPlan, SUBSCRIPTION_PLANS
+from app.models.tenant_subscription import TenantSubscription, SubscriptionStatus, BillingCycle
 
 __all__ = [
     # Base
@@ -53,4 +55,13 @@ __all__ = [
     'FeatureFlag',
     'FeatureCategory',
     'Features',
+
+    # Multi-Tenancy
+    'Tenant',
+    'TenantStatus',
+    'SubscriptionPlan',
+    'SUBSCRIPTION_PLANS',
+    'TenantSubscription',
+    'SubscriptionStatus',
+    'BillingCycle',
 ]

@@ -11,6 +11,7 @@ from app.repositories.role_repository import RoleRepository
 from app.repositories.asset_repository import AssetRepository
 from app.repositories.request_repository import RequestRepository
 from app.repositories.feature_flag_repository import FeatureFlagRepository
+from app.repositories.tenant_repository import TenantRepository
 
 __all__ = [
     'BaseRepository',
@@ -20,4 +21,5 @@ __all__ = [
     'AssetRepository',
     'RequestRepository',
     'FeatureFlagRepository',
+    'TenantRepository',
 ]

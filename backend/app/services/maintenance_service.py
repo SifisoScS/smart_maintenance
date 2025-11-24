@@ -9,6 +9,7 @@ Demonstrates:
 """
 
 from typing import Optional, Dict, List
+from flask import g, has_request_context
 from app.services.base_service import BaseService
 from app.repositories import RequestRepository, UserRepository, AssetRepository
 from app.services.notification_service import NotificationService
@@ -29,6 +30,7 @@ class MaintenanceService(BaseService):
     - Automated notifications (Observer-like behavior)
     - Factory pattern usage
     - Transaction management
+    - Plan limit enforcement (multi-tenancy)
 
     OOP Principles:
     - Single Responsibility: Manages only maintenance request business logic
@@ -66,6 +68,7 @@ class MaintenanceService(BaseService):
         Create a new maintenance request.
 
         Business Logic:
+        - Checks plan limits (multi-tenancy)
         - Validates submitter exists and is active
         - Validates asset exists
         - Creates specialized request via Factory
@@ -85,6 +88,18 @@ class MaintenanceService(BaseService):
             dict: Success/error response with request data
         """
         try:
+            # Check plan limits (multi-tenancy)
+            if has_request_context() and hasattr(g, 'current_tenant_id') and g.current_tenant_id:
+                from app.services.tenant_service import TenantService
+                tenant_service = TenantService()
+                limit_check = tenant_service.check_plan_limits(g.current_tenant_id, 'requests', count=1)
+
+                if not limit_check['allowed']:
+                    return self._build_error_response(
+                        limit_check['message'],
+                        status_code=403
+                    )
+
             # Validate inputs
             self._validate_required(request_type, 'request_type')
             self._validate_positive(submitter_id, 'submitter_id')

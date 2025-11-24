@@ -8,6 +8,7 @@ Demonstrates:
 """
 
 from typing import Optional, Dict
+from flask import g, has_request_context
 from app.services.base_service import BaseService
 from app.repositories import UserRepository
 from app.models import User, UserRole
@@ -23,6 +24,7 @@ class UserService(BaseService):
     - Authorization (role checking)
     - Password management
     - User profile management
+    - Plan limit enforcement (multi-tenancy)
 
     OOP Principles:
     - Single Responsibility: Handles only user-related business logic
@@ -59,8 +61,21 @@ class UserService(BaseService):
         - Email must be unique
         - Password must meet requirements
         - Role must be valid
+        - Tenant must have available user slots (multi-tenancy)
         """
         try:
+            # Check plan limits (multi-tenancy)
+            if has_request_context() and hasattr(g, 'current_tenant_id') and g.current_tenant_id:
+                from app.services.tenant_service import TenantService
+                tenant_service = TenantService()
+                limit_check = tenant_service.check_plan_limits(g.current_tenant_id, 'users', count=1)
+
+                if not limit_check['allowed']:
+                    return self._build_error_response(
+                        limit_check['message'],
+                        status_code=403
+                    )
+
             # Validate inputs
             self._validate_required(email, 'email')
             self._validate_required(password, 'password')

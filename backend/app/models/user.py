@@ -65,6 +65,10 @@ class User(BaseModel):
     # Status
     is_active = db.Column(db.Boolean, default=True, nullable=False)
 
+    # Multi-Tenancy
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id'), nullable=True, index=True)
+    tenant = db.relationship('Tenant', backref='users')
+
     # Relationships
     roles = db.relationship(
         'Role',

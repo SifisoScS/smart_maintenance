@@ -47,6 +47,9 @@ def create_app(config_name='default'):
     with app.app_context():
         from app import models  # noqa
 
+    # Register tenant middleware (must be before blueprints)
+    register_tenant_middleware(app)
+
     # Register observers for event-driven architecture
     register_observers(app)
 
@@ -57,6 +60,18 @@ def create_app(config_name='default'):
     register_error_handlers(app)
 
     return app
+
+
+def register_tenant_middleware(app):
+    """
+    Register tenant middleware for multi-tenancy support.
+
+    Args:
+        app: Flask application instance
+    """
+    from app.middleware import create_tenant_middleware
+    create_tenant_middleware(app)
+    app.logger.info("✓ Tenant middleware registered successfully")
 
 
 def register_blueprints(app):
@@ -75,10 +90,12 @@ def register_blueprints(app):
     from app.controllers.feature_flag_controller import feature_flag_bp
     from app.controllers.permission_controller import permission_bp
     from app.controllers.role_controller import role_bp
+    from app.controllers.tenant_controller import tenant_bp
 
     # Register API blueprints
     app.register_blueprint(health_bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(tenant_bp)  # Tenant routes
     app.register_blueprint(user_bp)
     app.register_blueprint(asset_bp)
     app.register_blueprint(request_bp)

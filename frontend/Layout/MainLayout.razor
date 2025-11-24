@@ -2,6 +2,7 @@
 @using frontend.Services.Interfaces
 @inject IAuthService AuthService
 @inject NavigationManager Navigation
+@inject ITenantBrandingService BrandingService
 
 <div class="app-container">
     <!-- Modern Horizontal Navigation -->
@@ -9,6 +10,7 @@
         <div class="navbar-content">
             <!-- Logo & Brand -->
             <div class="navbar-brand" @onclick="NavigateHome">
+                <div class="tenant-logo" style="display: none; max-width: 40px; max-height: 40px; margin-right: 12px;"></div>
                 <div class="brand-icon">🔧</div>
                 <span class="brand-text">SMMS</span>
             </div>
@@ -64,6 +66,12 @@
         try
         {
             isAuthenticated = await AuthService.IsAuthenticatedAsync();
+
+            // Load tenant branding if authenticated
+            if (isAuthenticated)
+            {
+                await BrandingService.LoadAndApplyBrandingAsync();
+            }
         }
         catch
         {
@@ -76,6 +84,12 @@
         try
         {
             isAuthenticated = await AuthService.IsAuthenticatedAsync();
+
+            // Load tenant branding if authenticated
+            if (isAuthenticated)
+            {
+                await BrandingService.LoadAndApplyBrandingAsync();
+            }
         }
         catch
         {
@@ -91,6 +105,7 @@
     private async Task HandleLogout()
     {
         await AuthService.LogoutAsync();
+        await BrandingService.ResetBrandingAsync();
         Navigation.NavigateTo("/", forceLoad: true);
     }
 }

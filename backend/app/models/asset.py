@@ -81,6 +81,10 @@ class Asset(BaseModel):
     purchase_date = db.Column(db.Date, nullable=True)
     warranty_expiry = db.Column(db.Date, nullable=True)
 
+    # Multi-Tenancy
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id'), nullable=True, index=True)
+    tenant = db.relationship('Tenant', backref='assets')
+
     # Relationships (will be defined when we create MaintenanceRequest)
     # maintenance_requests = relationship with MaintenanceRequest
 

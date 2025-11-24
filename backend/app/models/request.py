@@ -82,6 +82,10 @@ class MaintenanceRequest(BaseModel):
     actual_hours = db.Column(db.Float, nullable=True)
     completion_notes = db.Column(db.Text, nullable=True)
 
+    # Multi-Tenancy
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id'), nullable=True, index=True)
+    tenant = db.relationship('Tenant', backref='requests')
+
     # Relationships (will be set up after all models are defined)
     submitter = db.relationship('User', foreign_keys=[submitter_id], backref='submitted_requests')
     assigned_technician = db.relationship('User', foreign_keys=[assigned_technician_id], backref='assigned_requests')

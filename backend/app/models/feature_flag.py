@@ -53,6 +53,10 @@ class FeatureFlag(BaseModel):
     # Config data for feature-specific settings
     config_data = db.Column(db.JSON, default=dict)
 
+    # Multi-Tenancy
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id'), nullable=True, index=True)
+    tenant = db.relationship('Tenant', backref='feature_flags')
+
     def __init__(self, feature_key: str, name: str, description: str = None,
                  category: FeatureCategory = FeatureCategory.EXPERIMENTAL,
                  enabled: bool = False, rollout_percentage: int = 100,

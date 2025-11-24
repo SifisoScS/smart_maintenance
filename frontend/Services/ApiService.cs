@@ -23,7 +23,7 @@ namespace frontend.Services
         }
 
         /// <summary>
-        /// Add JWT token to Authorization header
+        /// Add JWT token and tenant ID to request headers
         /// </summary>
         private async Task SetAuthHeaderAsync()
         {
@@ -32,6 +32,17 @@ namespace frontend.Services
             {
                 _httpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            // Add X-Tenant-ID header for multi-tenancy
+            var user = await _authService.GetCurrentUserAsync();
+            if (user?.TenantId.HasValue == true)
+            {
+                if (_httpClient.DefaultRequestHeaders.Contains("X-Tenant-ID"))
+                {
+                    _httpClient.DefaultRequestHeaders.Remove("X-Tenant-ID");
+                }
+                _httpClient.DefaultRequestHeaders.Add("X-Tenant-ID", user.TenantId.Value.ToString());
             }
         }
 
@@ -1110,6 +1121,293 @@ namespace frontend.Services
             {
                 return null;
             }
+        }
+
+        // ============ Tenant Endpoints ============
+
+        /// <summary>
+        /// Register a new tenant (public endpoint - no auth required)
+        /// </summary>
+        public async Task<ApiResponse?> RegisterTenantAsync(SmartMaintenance.Blazor.Models.TenantRegistrationModel registration)
+        {
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync("/api/v1/tenants/register", registration);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<ApiResponse>();
+                }
+
+                var errorContent = await response.Content.ReadAsStringAsync();
+                return new ApiResponse { Success = false, Message = errorContent };
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse { Success = false, Message = ex.Message };
+            }
+        }
+
+        /// <summary>
+        /// Get current tenant information with usage stats
+        /// </summary>
+        public async Task<SmartMaintenance.Blazor.Models.TenantWithUsageModel?> GetCurrentTenantAsync()
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<SmartMaintenance.Blazor.Models.TenantWithUsageModel>("/api/v1/tenants/current");
+                return response;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Update current tenant settings
+        /// </summary>
+        public async Task<ApiResponse?> UpdateTenantSettingsAsync(SmartMaintenance.Blazor.Models.TenantSettingsModel settings)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.PutAsJsonAsync("/api/v1/tenants/current", settings);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<ApiResponse>();
+                }
+
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Update tenant branding (logo and colors)
+        /// </summary>
+        public async Task<ApiResponse?> UpdateTenantBrandingAsync(SmartMaintenance.Blazor.Models.TenantBrandingModel branding)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.PutAsJsonAsync("/api/v1/tenants/current/branding", branding);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<ApiResponse>();
+                }
+
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Get current tenant subscription details
+        /// </summary>
+        public async Task<SmartMaintenance.Blazor.Models.TenantSubscriptionModel?> GetSubscriptionAsync()
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<SmartMaintenance.Blazor.Models.TenantSubscriptionModel>("/api/v1/tenants/current/subscription");
+                return response;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Upgrade tenant subscription
+        /// </summary>
+        public async Task<ApiResponse?> UpgradeSubscriptionAsync(SmartMaintenance.Blazor.Models.SubscriptionUpgradeModel upgrade)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync("/api/v1/tenants/current/subscription/upgrade", upgrade);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<ApiResponse>();
+                }
+
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Get plan limits and current usage
+        /// </summary>
+        public async Task<SmartMaintenance.Blazor.Models.PlanLimitsModel?> GetPlanLimitsAsync()
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<SmartMaintenance.Blazor.Models.PlanLimitsModel>("/api/v1/tenants/current/limits");
+                return response;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Check if tenant can add more of a resource
+        /// </summary>
+        public async Task<SmartMaintenance.Blazor.Models.PlanLimitCheckResponseModel?> CheckPlanLimitAsync(string resource, int count = 1)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var checkModel = new SmartMaintenance.Blazor.Models.PlanLimitCheckModel
+                {
+                    Resource = resource,
+                    Count = count
+                };
+
+                var response = await _httpClient.PostAsJsonAsync("/api/v1/tenants/current/limits/check", checkModel);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<SmartMaintenance.Blazor.Models.PlanLimitCheckResponseModel>();
+                }
+
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        // ============ Super Admin Tenant Endpoints ============
+
+        /// <summary>
+        /// List all tenants (super admin only)
+        /// </summary>
+        public async Task<List<SmartMaintenance.Blazor.Models.TenantModel>> GetAllTenantsAsync(string? status = null, string? plan = null, int? limit = null)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var queryParams = new List<string>();
+                if (!string.IsNullOrEmpty(status)) queryParams.Add($"status={status}");
+                if (!string.IsNullOrEmpty(plan)) queryParams.Add($"plan={plan}");
+                if (limit.HasValue) queryParams.Add($"limit={limit}");
+
+                var query = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
+                var response = await _httpClient.GetFromJsonAsync<TenantListResponse>($"/api/v1/tenants{query}");
+
+                return response?.Tenants ?? new List<SmartMaintenance.Blazor.Models.TenantModel>();
+            }
+            catch (Exception)
+            {
+                return new List<SmartMaintenance.Blazor.Models.TenantModel>();
+            }
+        }
+
+        /// <summary>
+        /// Search tenants (super admin only)
+        /// </summary>
+        public async Task<List<SmartMaintenance.Blazor.Models.TenantModel>> SearchTenantsAsync(string query)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<TenantListResponse>($"/api/v1/tenants?search={query}");
+                return response?.Tenants ?? new List<SmartMaintenance.Blazor.Models.TenantModel>();
+            }
+            catch (Exception)
+            {
+                return new List<SmartMaintenance.Blazor.Models.TenantModel>();
+            }
+        }
+
+        /// <summary>
+        /// Get tenant by ID (super admin only)
+        /// </summary>
+        public async Task<SmartMaintenance.Blazor.Models.TenantWithUsageModel?> GetTenantByIdAsync(int tenantId)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<SmartMaintenance.Blazor.Models.TenantWithUsageModel>($"/api/v1/tenants/{tenantId}");
+                return response;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Suspend a tenant (super admin only)
+        /// </summary>
+        public async Task<ApiResponse?> SuspendTenantAsync(int tenantId, string reason)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync($"/api/v1/tenants/{tenantId}/suspend", new { reason });
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<ApiResponse>();
+                }
+
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Activate a suspended tenant (super admin only)
+        /// </summary>
+        public async Task<ApiResponse?> ActivateTenantAsync(int tenantId)
+        {
+            await SetAuthHeaderAsync();
+            try
+            {
+                var response = await _httpClient.PostAsync($"/api/v1/tenants/{tenantId}/activate", null);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<ApiResponse>();
+                }
+
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        // Helper class for tenant list response
+        private class TenantListResponse
+        {
+            public int Total { get; set; }
+            public List<SmartMaintenance.Blazor.Models.TenantModel> Tenants { get; set; } = new List<SmartMaintenance.Blazor.Models.TenantModel>();
         }
     }
 }
