@@ -1,8 +1,9 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 @using frontend.Services.Interfaces
 @inject IAuthService AuthService
 @inject NavigationManager Navigation
 @inject ITenantBrandingService BrandingService
+@inject IJSRuntime JSRuntime
 
 <div class="app-container">
     <!-- Modern Horizontal Navigation -->
@@ -33,6 +34,12 @@
 
             <!-- Auth Buttons -->
             <div class="navbar-actions">
+                <!-- Current Date & Time -->
+                <div class="datetime-display">
+                    <div class="datetime-icon">🕐</div>
+                    <div class="datetime-text" id="currentDateTime">@currentDateTime</div>
+                </div>
+
                 @if (isAuthenticated)
                 {
                     <button class="btn-glass" @onclick="HandleLogout">
@@ -58,8 +65,222 @@
     </main>
 </div>
 
+<style>
+    /* App Container */
+    .app-container {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Top Navbar */
+    .top-navbar {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        background: rgba(15, 23, 42, 0.8);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 16px 0;
+    }
+
+    .navbar-content {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 32px;
+    }
+
+    /* Navbar Brand */
+    .navbar-brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+    }
+
+    .navbar-brand:hover {
+        transform: scale(1.05);
+    }
+
+    .brand-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #8b5cf6, #ec4899);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+
+    .brand-text {
+        font-size: 24px;
+        font-weight: 800;
+        color: white;
+    }
+
+    /* Navigation Links */
+    .navbar-links {
+        display: flex;
+        align-items: center;
+        gap: 32px;
+        flex: 1;
+        margin-left: 48px;
+    }
+
+    .nav-link {
+        color: #cbd5e1;
+        text-decoration: none;
+        font-size: 16px;
+        font-weight: 500;
+        padding: 8px 16px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .nav-link:hover {
+        color: white;
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-link::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 16px;
+        right: 16px;
+        height: 2px;
+        background: linear-gradient(135deg, #8b5cf6, #ec4899);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+
+    .nav-link:hover::after {
+        transform: scaleX(1);
+    }
+
+    /* Navbar Actions */
+    .navbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    /* Date Time Display */
+    .datetime-display {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .datetime-icon {
+        font-size: 18px;
+        opacity: 0.9;
+    }
+
+    .datetime-text {
+        font-size: 14px;
+        font-weight: 600;
+        color: white;
+        white-space: nowrap;
+    }
+
+    /* Buttons */
+    .btn-glass {
+        padding: 10px 24px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        color: white;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-glass:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .btn-gradient {
+        padding: 10px 24px;
+        background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+    }
+
+    .btn-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
+    }
+
+    /* Main Content */
+    .main-content {
+        flex: 1;
+        width: 100%;
+    }
+
+    /* Responsive */
+    @@media (max-width: 1024px) {
+        .navbar-links {
+            display: none;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .navbar-content {
+            gap: 16px;
+        }
+
+        .datetime-display {
+            display: none;
+        }
+
+        .navbar-actions {
+            gap: 8px;
+        }
+
+        .btn-glass,
+        .btn-gradient {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .brand-text {
+            font-size: 20px;
+        }
+
+        .brand-icon {
+            width: 32px;
+            height: 32px;
+            font-size: 20px;
+        }
+    }
+</style>
+
 @code {
     private bool isAuthenticated = false;
+    private string currentDateTime = "";
+    private System.Threading.Timer? timer;
 
     protected override async Task OnInitializedAsync()
     {
@@ -72,10 +293,23 @@
             {
                 await BrandingService.LoadAndApplyBrandingAsync();
             }
+
+            // Initialize datetime and start timer
+            UpdateDateTime();
+            StartDateTimeTimer();
         }
         catch
         {
             isAuthenticated = false;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Start JavaScript timer for live updates
+            await JSRuntime.InvokeVoidAsync("startDateTimeUpdater");
         }
     }
 
@@ -97,6 +331,20 @@
         }
     }
 
+    private void UpdateDateTime()
+    {
+        currentDateTime = DateTime.Now.ToString("MMM dd, yyyy HH:mm:ss");
+    }
+
+    private void StartDateTimeTimer()
+    {
+        timer = new System.Threading.Timer(async _ =>
+        {
+            UpdateDateTime();
+            await InvokeAsync(StateHasChanged);
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+    }
+
     private void NavigateHome()
     {
         Navigation.NavigateTo("/");
@@ -107,5 +355,10 @@
         await AuthService.LogoutAsync();
         await BrandingService.ResetBrandingAsync();
         Navigation.NavigateTo("/", forceLoad: true);
+    }
+
+    public void Dispose()
+    {
+        timer?.Dispose();
     }
 }

@@ -164,5 +164,47 @@ namespace frontend.Services.Interfaces
         Task<ApiResponse?> UpgradeSubscriptionAsync(SubscriptionUpgradeModel upgrade);
         Task<ApiResponse?> SuspendTenantAsync(int tenantId, string reason);
         Task<ApiResponse?> ActivateTenantAsync(int tenantId);
+
+        // ============ Predictive Maintenance Endpoints ============
+
+        /// <summary>
+        /// Get comprehensive predictive maintenance insights
+        /// </summary>
+        Task<PredictiveInsightsModel> GetPredictiveInsightsAsync();
+
+        /// <summary>
+        /// Get health analysis for a specific asset
+        /// </summary>
+        Task<AssetHealthModel> GetAssetHealthAsync(int assetId);
+
+        /// <summary>
+        /// Get health analysis for all assets
+        /// </summary>
+        Task<List<AssetHealthModel>> GetAllAssetsHealthAsync();
+
+        /// <summary>
+        /// Get critical assets requiring attention
+        /// </summary>
+        Task<List<AssetHealthModel>> GetCriticalAssetsAsync();
+
+        /// <summary>
+        /// Get maintenance schedule recommendations
+        /// </summary>
+        Task<List<MaintenanceScheduleModel>> GetMaintenanceScheduleAsync(int daysAhead = 30);
+
+        /// <summary>
+        /// Get technician workload distribution (admin only)
+        /// </summary>
+        Task<List<WorkloadModel>> GetTechnicianWorkloadAsync();
+
+        /// <summary>
+        /// Auto-assign a maintenance request to best technician (admin only)
+        /// </summary>
+        Task<AssignmentResultModel> AutoAssignRequestAsync(int requestId);
+
+        /// <summary>
+        /// Create preventive maintenance request
+        /// </summary>
+        Task<ApiResponse> CreatePreventiveMaintenanceAsync(int assetId, bool autoAssign = true);
     }
 }

@@ -1,0 +1,268 @@
+@page "/about"
+
+<PageTitle>About Us - Smart Maintenance</PageTitle>
+
+<div class="about-page">
+    <div class="hero-section">
+        <h1>🏢 About Smart Maintenance</h1>
+        <p class="hero-subtitle">Revolutionizing maintenance management through innovation and technology</p>
+    </div>
+
+    <div class="content-section">
+        <div class="mission-card">
+            <h2>Our Mission</h2>
+            <p>To empower organizations worldwide with intelligent maintenance management solutions that streamline operations, reduce downtime, and maximize asset performance through cutting-edge technology and user-centric design.</p>
+        </div>
+
+        <div class="values-grid">
+            <div class="value-card">
+                <div class="value-icon">🎯</div>
+                <h3>Innovation</h3>
+                <p>Continuously pushing boundaries with modern architecture patterns and emerging technologies</p>
+            </div>
+
+            <div class="value-card">
+                <div class="value-icon">🤝</div>
+                <h3>Reliability</h3>
+                <p>Building robust, scalable systems that organizations can depend on 24/7</p>
+            </div>
+
+            <div class="value-card">
+                <div class="value-icon">🌟</div>
+                <h3>Excellence</h3>
+                <p>Committed to delivering exceptional user experiences and superior product quality</p>
+            </div>
+
+            <div class="value-card">
+                <div class="value-icon">🔒</div>
+                <h3>Security</h3>
+                <p>Protecting your data with enterprise-grade security and compliance standards</p>
+            </div>
+        </div>
+
+        <div class="stats-section">
+            <div class="stat-box">
+                <div class="stat-number">10,000+</div>
+                <div class="stat-label">Active Users</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">99.9%</div>
+                <div class="stat-label">Uptime SLA</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">50,000+</div>
+                <div class="stat-label">Requests Processed</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">24/7</div>
+                <div class="stat-label">Support Available</div>
+            </div>
+        </div>
+
+        <div class="technology-section">
+            <h2>Platform Capabilities</h2>
+            <p>Our comprehensive platform delivers everything you need to transform your maintenance operations:</p>
+            <div class="tech-badges">
+                <span class="tech-badge">Real-Time Tracking</span>
+                <span class="tech-badge">Mobile Access</span>
+                <span class="tech-badge">Instant Notifications</span>
+                <span class="tech-badge">Advanced Analytics</span>
+                <span class="tech-badge">Asset Management</span>
+                <span class="tech-badge">Team Collaboration</span>
+                <span class="tech-badge">Automated Workflows</span>
+                <span class="tech-badge">Cloud-Based</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary: #1a365d;
+        --secondary: #2d3748;
+        --accent: #3182ce;
+        --light: #f7fafc;
+        --dark: #2d3748;
+        --success: #38a169;
+        --warning: #d69e2e;
+        --danger: #e53e3e;
+        --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --transition: all 0.3s ease;
+    }
+
+    .about-page {
+        background-color: var(--light);
+        min-height: 100vh;
+    }
+
+    .hero-section {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        color: white;
+        text-align: center;
+        padding: 80px 20px;
+    }
+
+    .hero-section h1 {
+        font-size: 52px;
+        font-weight: 800;
+        margin-bottom: 20px;
+    }
+
+    .hero-subtitle {
+        font-size: 22px;
+        opacity: 0.95;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    .content-section {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 60px 20px;
+    }
+
+    .mission-card {
+        background: white;
+        padding: 50px;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 60px;
+        border-left: 6px solid var(--accent);
+    }
+
+    .mission-card h2 {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 20px;
+    }
+
+    .mission-card p {
+        font-size: 18px;
+        line-height: 1.8;
+        color: var(--secondary);
+    }
+
+    .values-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 30px;
+        margin-bottom: 60px;
+    }
+
+    .value-card {
+        background: white;
+        padding: 40px;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        text-align: center;
+        transition: var(--transition);
+        border-top: 4px solid var(--accent);
+    }
+
+    .value-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 10px 30px rgba(49, 130, 206, 0.2);
+    }
+
+    .value-icon {
+        font-size: 56px;
+        margin-bottom: 20px;
+    }
+
+    .value-card h3 {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 12px;
+    }
+
+    .value-card p {
+        font-size: 16px;
+        color: var(--secondary);
+        line-height: 1.6;
+    }
+
+    .stats-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 30px;
+        margin-bottom: 60px;
+    }
+
+    .stat-box {
+        background: var(--accent);
+        color: white;
+        padding: 40px 20px;
+        border-radius: 16px;
+        text-align: center;
+        box-shadow: var(--card-shadow);
+    }
+
+    .stat-number {
+        font-size: 42px;
+        font-weight: 800;
+        margin-bottom: 10px;
+    }
+
+    .stat-label {
+        font-size: 16px;
+        opacity: 0.95;
+    }
+
+    .technology-section {
+        background: white;
+        padding: 50px;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        text-align: center;
+    }
+
+    .technology-section h2 {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 20px;
+    }
+
+    .technology-section p {
+        font-size: 18px;
+        color: var(--secondary);
+        margin-bottom: 30px;
+        line-height: 1.6;
+    }
+
+    .tech-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        justify-content: center;
+    }
+
+    .tech-badge {
+        background: var(--light);
+        border: 2px solid var(--accent);
+        color: var(--primary);
+        padding: 12px 24px;
+        border-radius: 30px;
+        font-weight: 600;
+        font-size: 14px;
+        transition: var(--transition);
+    }
+
+    .tech-badge:hover {
+        background: var(--accent);
+        color: white;
+        transform: scale(1.05);
+    }
+
+    @@media (max-width: 768px) {
+        .hero-section h1 {
+            font-size: 36px;
+        }
+
+        .mission-card, .technology-section {
+            padding: 30px 20px;
+        }
+    }
+</style>

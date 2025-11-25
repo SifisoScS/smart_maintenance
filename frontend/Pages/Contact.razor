@@ -1,0 +1,329 @@
+@page "/contact"
+
+<PageTitle>Contact Us - Smart Maintenance</PageTitle>
+
+<div class="contact-page">
+    <div class="page-header">
+        <h1>📞 Contact Us</h1>
+        <p class="subtitle">Have questions? We'd love to hear from you</p>
+    </div>
+
+    <div class="contact-container">
+        <div class="contact-form-section">
+            <h2>Send us a Message</h2>
+            <p class="form-subtitle">Fill out the form below and we'll get back to you as soon as possible</p>
+
+            <form class="contact-form">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" placeholder="John Smith" class="form-input" />
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" placeholder="john@example.com" class="form-input" />
+                </div>
+
+                <div class="form-group">
+                    <label for="company">Company (Optional)</label>
+                    <input type="text" id="company" placeholder="Acme Corporation" class="form-input" />
+                </div>
+
+                <div class="form-group">
+                    <label for="subject">Subject</label>
+                    <select id="subject" class="form-input">
+                        <option>General Inquiry</option>
+                        <option>Technical Support</option>
+                        <option>Sales & Pricing</option>
+                        <option>Feature Request</option>
+                        <option>Partnership</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="message">Message</label>
+                    <textarea id="message" rows="6" placeholder="Tell us how we can help you..." class="form-input"></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn">Send Message</button>
+            </form>
+        </div>
+
+        <div class="contact-info-section">
+            <h2>Get in Touch</h2>
+
+            <div class="info-card">
+                <div class="info-icon">📧</div>
+                <h3>Email</h3>
+                <p>support@smartmaintenance.com</p>
+                <p>sales@smartmaintenance.com</p>
+            </div>
+
+            <div class="info-card">
+                <div class="info-icon">📱</div>
+                <h3>Phone</h3>
+                <p>+1 (555) 123-4567</p>
+                <p>Mon-Fri: 9:00 AM - 6:00 PM EST</p>
+            </div>
+
+            <div class="info-card">
+                <div class="info-icon">🏢</div>
+                <h3>Office</h3>
+                <p>123 Tech Street</p>
+                <p>San Francisco, CA 94105</p>
+                <p>United States</p>
+            </div>
+
+            <div class="info-card">
+                <div class="info-icon">💬</div>
+                <h3>Live Chat</h3>
+                <p>Available 24/7 for premium users</p>
+                <button class="chat-btn">Start Chat</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="faq-section">
+        <h2>Frequently Asked Questions</h2>
+        <div class="faq-grid">
+            <div class="faq-item">
+                <h3>What is your response time?</h3>
+                <p>We typically respond to all inquiries within 24 hours during business days. Premium customers receive priority support with responses within 4 hours.</p>
+            </div>
+            <div class="faq-item">
+                <h3>Do you offer onboarding assistance?</h3>
+                <p>Yes! We provide comprehensive onboarding for all new customers, including system setup, training, and migration assistance.</p>
+            </div>
+            <div class="faq-item">
+                <h3>Can I schedule a demo?</h3>
+                <p>Absolutely! Contact our sales team to schedule a personalized demo of our platform and see how it fits your needs.</p>
+            </div>
+            <div class="faq-item">
+                <h3>What support channels are available?</h3>
+                <p>We offer email, phone, live chat, and video support. Premium users also get access to a dedicated account manager.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary: #1a365d;
+        --secondary: #2d3748;
+        --accent: #3182ce;
+        --light: #f7fafc;
+        --dark: #2d3748;
+        --success: #38a169;
+        --warning: #d69e2e;
+        --danger: #e53e3e;
+        --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --transition: all 0.3s ease;
+    }
+
+    .contact-page {
+        background-color: var(--light);
+        min-height: 100vh;
+        padding: 60px 20px;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 60px;
+    }
+
+    .page-header h1 {
+        font-size: 48px;
+        font-weight: 800;
+        color: var(--primary);
+        margin-bottom: 16px;
+    }
+
+    .subtitle {
+        font-size: 20px;
+        color: var(--secondary);
+    }
+
+    .contact-container {
+        max-width: 1200px;
+        margin: 0 auto 80px;
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: 40px;
+    }
+
+    .contact-form-section, .contact-info-section {
+        background: white;
+        padding: 40px;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+    }
+
+    .contact-form-section h2, .contact-info-section h2 {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 12px;
+    }
+
+    .form-subtitle {
+        color: var(--secondary);
+        margin-bottom: 30px;
+    }
+
+    .form-group {
+        margin-bottom: 24px;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 14px 18px;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 16px;
+        transition: var(--transition);
+        font-family: inherit;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+    }
+
+    textarea.form-input {
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    .submit-btn {
+        width: 100%;
+        padding: 16px;
+        background: var(--accent);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .submit-btn:hover {
+        background: var(--primary);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(49, 130, 206, 0.3);
+    }
+
+    .contact-info-section h2 {
+        margin-bottom: 30px;
+    }
+
+    .info-card {
+        background: var(--light);
+        padding: 24px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        border-left: 4px solid var(--accent);
+    }
+
+    .info-icon {
+        font-size: 32px;
+        margin-bottom: 12px;
+    }
+
+    .info-card h3 {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 8px;
+    }
+
+    .info-card p {
+        color: var(--secondary);
+        font-size: 15px;
+        margin-bottom: 4px;
+    }
+
+    .chat-btn {
+        margin-top: 12px;
+        padding: 10px 20px;
+        background: var(--success);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .chat-btn:hover {
+        background: #2f855a;
+        transform: scale(1.05);
+    }
+
+    .faq-section {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        padding: 50px;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+    }
+
+    .faq-section h2 {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--primary);
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .faq-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 30px;
+    }
+
+    .faq-item {
+        padding: 24px;
+        background: var(--light);
+        border-radius: 12px;
+        border-top: 3px solid var(--accent);
+    }
+
+    .faq-item h3 {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 12px;
+    }
+
+    .faq-item p {
+        color: var(--secondary);
+        line-height: 1.6;
+        font-size: 15px;
+    }
+
+    @@media (max-width: 768px) {
+        .page-header h1 {
+            font-size: 36px;
+        }
+
+        .contact-container {
+            grid-template-columns: 1fr;
+        }
+
+        .faq-section {
+            padding: 30px 20px;
+        }
+    }
+</style>

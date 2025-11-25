@@ -1,0 +1,280 @@
+@page "/blog"
+
+<PageTitle>Blog - Smart Maintenance</PageTitle>
+
+<div class="blog-page">
+    <div class="page-header">
+        <h1>📝 Our Blog</h1>
+        <p class="subtitle">Insights, updates, and best practices for maintenance management</p>
+    </div>
+
+    <div class="blog-container">
+        <div class="blog-post-card featured">
+            <div class="post-badge">Featured</div>
+            <div class="post-date">November 24, 2025</div>
+            <h2>Introducing Multi-Tenant Architecture</h2>
+            <p>We're excited to announce the launch of our multi-tenant SaaS platform, enabling organizations to manage their maintenance operations in secure, isolated workspaces with customizable plans and branding.</p>
+            <div class="post-tags">
+                <span class="tag">Product Update</span>
+                <span class="tag">Architecture</span>
+            </div>
+        </div>
+
+        <div class="blog-post-card">
+            <div class="post-date">November 15, 2025</div>
+            <h2>Best Practices for Asset Management</h2>
+            <p>Learn how to effectively track and manage your assets with our comprehensive guide covering maintenance schedules, condition monitoring, and performance analytics.</p>
+            <div class="post-tags">
+                <span class="tag">Best Practices</span>
+                <span class="tag">Asset Management</span>
+            </div>
+        </div>
+
+        <div class="blog-post-card">
+            <div class="post-date">November 1, 2025</div>
+            <h2>Understanding Role-Based Access Control</h2>
+            <p>Dive deep into our RBAC system and learn how to configure roles, permissions, and security policies for your organization's unique needs.</p>
+            <div class="post-tags">
+                <span class="tag">Security</span>
+                <span class="tag">Tutorial</span>
+            </div>
+        </div>
+
+        <div class="blog-post-card">
+            <div class="post-date">October 20, 2025</div>
+            <h2>Real-Time Tracking with WebSockets</h2>
+            <p>Explore how our platform uses modern web technologies to deliver instant updates and notifications for seamless maintenance operations.</p>
+            <div class="post-tags">
+                <span class="tag">Technology</span>
+                <span class="tag">Features</span>
+            </div>
+        </div>
+
+        <div class="blog-post-card">
+            <div class="post-date">October 5, 2025</div>
+            <h2>Maximizing Team Productivity</h2>
+            <p>Discover strategies and features that help maintenance teams work more efficiently, from smart assignment to performance analytics.</p>
+            <div class="post-tags">
+                <span class="tag">Productivity</span>
+                <span class="tag">Tips & Tricks</span>
+            </div>
+        </div>
+
+        <div class="blog-post-card">
+            <div class="post-date">September 28, 2025</div>
+            <h2>Security and Compliance in SaaS</h2>
+            <p>Learn about our commitment to data security, privacy protection, and industry compliance standards that keep your information safe.</p>
+            <div class="post-tags">
+                <span class="tag">Security</span>
+                <span class="tag">Compliance</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="newsletter-section">
+        <h2>📬 Subscribe to Our Newsletter</h2>
+        <p>Get the latest updates, tips, and insights delivered to your inbox</p>
+        <div class="newsletter-form">
+            <input type="email" placeholder="Enter your email address" class="email-input" />
+            <button class="subscribe-btn">Subscribe</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary: #1a365d;
+        --secondary: #2d3748;
+        --accent: #3182ce;
+        --light: #f7fafc;
+        --dark: #2d3748;
+        --success: #38a169;
+        --warning: #d69e2e;
+        --danger: #e53e3e;
+        --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --transition: all 0.3s ease;
+    }
+
+    .blog-page {
+        background-color: var(--light);
+        min-height: 100vh;
+        padding: 60px 20px;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 60px;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .page-header h1 {
+        font-size: 48px;
+        font-weight: 800;
+        color: var(--primary);
+        margin-bottom: 16px;
+    }
+
+    .subtitle {
+        font-size: 20px;
+        color: var(--secondary);
+    }
+
+    .blog-container {
+        max-width: 1200px;
+        margin: 0 auto 80px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 30px;
+    }
+
+    .blog-post-card {
+        background: white;
+        padding: 35px;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        transition: var(--transition);
+        border-top: 4px solid var(--accent);
+        position: relative;
+        cursor: pointer;
+    }
+
+    .blog-post-card.featured {
+        grid-column: span 2;
+        border-top-color: var(--warning);
+    }
+
+    .blog-post-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(49, 130, 206, 0.2);
+    }
+
+    .post-badge {
+        position: absolute;
+        top: -12px;
+        right: 20px;
+        background: var(--warning);
+        color: white;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .post-date {
+        color: var(--accent);
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 16px;
+    }
+
+    .blog-post-card h2 {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 16px;
+        line-height: 1.3;
+    }
+
+    .blog-post-card p {
+        font-size: 16px;
+        color: var(--secondary);
+        line-height: 1.6;
+        margin-bottom: 20px;
+    }
+
+    .post-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .tag {
+        background: var(--light);
+        color: var(--primary);
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        border: 1px solid var(--accent);
+    }
+
+    .newsletter-section {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        color: white;
+        padding: 60px;
+        border-radius: 24px;
+        text-align: center;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .newsletter-section h2 {
+        font-size: 32px;
+        font-weight: 800;
+        margin-bottom: 16px;
+    }
+
+    .newsletter-section p {
+        font-size: 18px;
+        margin-bottom: 30px;
+        opacity: 0.95;
+    }
+
+    .newsletter-form {
+        display: flex;
+        gap: 12px;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .email-input {
+        flex: 1;
+        padding: 16px 24px;
+        border-radius: 12px;
+        border: none;
+        font-size: 16px;
+        outline: none;
+    }
+
+    .subscribe-btn {
+        padding: 16px 32px;
+        background: white;
+        color: var(--primary);
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 16px;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .subscribe-btn:hover {
+        background: var(--light);
+        transform: scale(1.05);
+    }
+
+    @@media (max-width: 768px) {
+        .page-header h1 {
+            font-size: 36px;
+        }
+
+        .blog-container {
+            grid-template-columns: 1fr;
+        }
+
+        .blog-post-card.featured {
+            grid-column: span 1;
+        }
+
+        .newsletter-form {
+            flex-direction: column;
+        }
+
+        .newsletter-section {
+            padding: 40px 20px;
+        }
+    }
+</style>

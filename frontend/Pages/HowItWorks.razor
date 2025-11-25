@@ -1,0 +1,259 @@
+@page "/how-it-works"
+
+<PageTitle>How It Works - Smart Maintenance</PageTitle>
+
+<div class="how-it-works-page">
+    <div class="page-header">
+        <h1>⚙️ How It Works</h1>
+        <p class="subtitle">Simple, powerful workflow in three easy steps</p>
+    </div>
+
+    <div class="steps-container">
+        <div class="step-card">
+            <div class="step-number">01</div>
+            <div class="step-icon">📝</div>
+            <h2>Submit Request</h2>
+            <p>Create maintenance requests instantly via web interface with detailed descriptions, photo attachments, and priority levels. Requests are automatically routed to the appropriate team.</p>
+            <ul class="step-features">
+                <li>Quick request creation</li>
+                <li>Photo attachments</li>
+                <li>Priority levels</li>
+                <li>Asset assignment</li>
+            </ul>
+        </div>
+
+        <div class="step-arrow">→</div>
+
+        <div class="step-card">
+            <div class="step-number">02</div>
+            <div class="step-icon">👨‍🔧</div>
+            <h2>Smart Assignment</h2>
+            <p>Our intelligent routing system assigns tasks to the right technician based on skills, location, current workload, and expertise. Automated notifications keep everyone informed.</p>
+            <ul class="step-features">
+                <li>Skill-based routing</li>
+                <li>Workload balancing</li>
+                <li>Instant notifications</li>
+                <li>Real-time updates</li>
+            </ul>
+        </div>
+
+        <div class="step-arrow">→</div>
+
+        <div class="step-card">
+            <div class="step-number">03</div>
+            <div class="step-icon">✅</div>
+            <h2>Track & Complete</h2>
+            <p>Monitor progress in real-time with comprehensive tracking. Technicians update status, add notes, and complete tasks while managers view analytics and performance metrics.</p>
+            <ul class="step-features">
+                <li>Real-time tracking</li>
+                <li>Status updates</li>
+                <li>Performance analytics</li>
+                <li>Completion reports</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="benefits-section">
+        <h2>Why Choose Our System?</h2>
+        <div class="benefits-grid">
+            <div class="benefit-item">
+                <span class="benefit-icon">⚡</span>
+                <span>80% Faster Resolution</span>
+            </div>
+            <div class="benefit-item">
+                <span class="benefit-icon">📊</span>
+                <span>Real-Time Analytics</span>
+            </div>
+            <div class="benefit-item">
+                <span class="benefit-icon">🔒</span>
+                <span>Secure & Compliant</span>
+            </div>
+            <div class="benefit-item">
+                <span class="benefit-icon">🌐</span>
+                <span>Multi-Tenant Ready</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary: #1a365d;
+        --secondary: #2d3748;
+        --accent: #3182ce;
+        --light: #f7fafc;
+        --dark: #2d3748;
+        --success: #38a169;
+        --warning: #d69e2e;
+        --danger: #e53e3e;
+        --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --transition: all 0.3s ease;
+    }
+
+    .how-it-works-page {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 60px 20px;
+        background-color: var(--light);
+        min-height: 100vh;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 80px;
+    }
+
+    .page-header h1 {
+        font-size: 48px;
+        font-weight: 800;
+        color: var(--primary);
+        margin-bottom: 16px;
+    }
+
+    .subtitle {
+        font-size: 20px;
+        color: var(--secondary);
+    }
+
+    .steps-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 30px;
+        margin-bottom: 80px;
+    }
+
+    .step-card {
+        flex: 1;
+        max-width: 350px;
+        background: white;
+        padding: 40px;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        position: relative;
+        border-top: 4px solid var(--accent);
+        transition: var(--transition);
+    }
+
+    .step-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(49, 130, 206, 0.2);
+    }
+
+    .step-number {
+        position: absolute;
+        top: -20px;
+        left: 30px;
+        background: var(--accent);
+        color: white;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: 800;
+        box-shadow: 0 4px 12px rgba(49, 130, 206, 0.4);
+    }
+
+    .step-icon {
+        font-size: 64px;
+        text-align: center;
+        margin: 20px 0;
+    }
+
+    .step-card h2 {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 16px;
+    }
+
+    .step-card p {
+        font-size: 16px;
+        color: var(--secondary);
+        line-height: 1.6;
+        margin-bottom: 20px;
+    }
+
+    .step-features {
+        list-style: none;
+        padding: 0;
+    }
+
+    .step-features li {
+        padding: 8px 0;
+        color: var(--dark);
+        font-size: 14px;
+    }
+
+    .step-features li::before {
+        content: "✓ ";
+        color: var(--success);
+        font-weight: bold;
+        margin-right: 8px;
+    }
+
+    .step-arrow {
+        font-size: 48px;
+        color: var(--accent);
+        font-weight: bold;
+    }
+
+    .benefits-section {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        border-radius: 24px;
+        padding: 60px;
+        text-align: center;
+        color: white;
+    }
+
+    .benefits-section h2 {
+        font-size: 36px;
+        font-weight: 800;
+        margin-bottom: 40px;
+    }
+
+    .benefits-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 30px;
+    }
+
+    .benefit-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .benefit-icon {
+        font-size: 48px;
+    }
+
+    .benefit-item span:last-child {
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    @@media (max-width: 1024px) {
+        .steps-container {
+            flex-direction: column;
+        }
+
+        .step-arrow {
+            transform: rotate(90deg);
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .page-header h1 {
+            font-size: 36px;
+        }
+
+        .benefits-section {
+            padding: 40px 20px;
+        }
+    }
+</style>

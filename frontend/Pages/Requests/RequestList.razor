@@ -40,6 +40,106 @@
             }
         </div>
 
+        <!-- Analytics Charts -->
+        <div class="charts-section">
+            <!-- Request Status Chart -->
+            <div class="chart-container">
+                <div class="chart-title">
+                    <i>📊</i>
+                    <h3>Request Status</h3>
+                </div>
+                <div class="chart-content">
+                    @{
+                        var statusGroups = requests.GroupBy(r => r.Status).Select(g => new { Status = g.Key, Count = g.Count() }).OrderBy(x => x.Status);
+                        var maxStatusCount = statusGroups.Any() ? statusGroups.Max(g => g.Count) : 1;
+                    }
+                    @foreach (var group in statusGroups)
+                    {
+                        var percentage = maxStatusCount > 0 ? (group.Count * 100.0 / maxStatusCount) : 0;
+                        <div class="chart-bar-row">
+                            <span class="chart-label">@group.Status</span>
+                            <div class="chart-bar-container">
+                                <div class="chart-bar chart-bar-@group.Status" style="width: @percentage%"></div>
+                            </div>
+                            <span class="chart-value">@group.Count</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Priority Distribution Chart -->
+            <div class="chart-container">
+                <div class="chart-title">
+                    <i>🔥</i>
+                    <h3>Priority Distribution</h3>
+                </div>
+                <div class="chart-content">
+                    @{
+                        var priorityGroups = requests.GroupBy(r => r.Priority).Select(g => new { Priority = g.Key, Count = g.Count() }).OrderBy(x => x.Priority);
+                        var maxPriorityCount = priorityGroups.Any() ? priorityGroups.Max(g => g.Count) : 1;
+                    }
+                    @foreach (var group in priorityGroups)
+                    {
+                        var percentage = maxPriorityCount > 0 ? (group.Count * 100.0 / maxPriorityCount) : 0;
+                        <div class="chart-bar-row">
+                            <span class="chart-label">@group.Priority</span>
+                            <div class="chart-bar-container">
+                                <div class="chart-bar chart-bar-priority-@group.Priority" style="width: @percentage%"></div>
+                            </div>
+                            <span class="chart-value">@group.Count</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Request Type Distribution -->
+            <div class="chart-container">
+                <div class="chart-title">
+                    <i>⚙️</i>
+                    <h3>Request Types</h3>
+                </div>
+                <div class="chart-content">
+                    @{
+                        var typeGroups = requests.GroupBy(r => r.RequestType ?? "general").Select(g => new { Type = g.Key, Count = g.Count() }).OrderByDescending(x => x.Count);
+                        var maxTypeCount = typeGroups.Any() ? typeGroups.Max(g => g.Count) : 1;
+                    }
+                    @foreach (var group in typeGroups)
+                    {
+                        var percentage = maxTypeCount > 0 ? (group.Count * 100.0 / maxTypeCount) : 0;
+                        <div class="chart-bar-row">
+                            <span class="chart-label">@group.Type</span>
+                            <div class="chart-bar-container">
+                                <div class="chart-bar chart-bar-type" style="width: @percentage%"></div>
+                            </div>
+                            <span class="chart-value">@group.Count</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Summary Stats -->
+            <div class="chart-container">
+                <div class="chart-title">
+                    <i>📈</i>
+                    <h3>Summary Statistics</h3>
+                </div>
+                <div class="stat-summary">
+                    <div class="stat-item">
+                        <div class="stat-label">Total Requests</div>
+                        <div class="stat-number">@requests.Count</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Active</div>
+                        <div class="stat-number">@requests.Count(r => r.Status != "completed")</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Completed</div>
+                        <div class="stat-number">@requests.Count(r => r.Status == "completed")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Filters -->
         <div class="filters-section">
             <div class="filters-grid">
@@ -502,11 +602,160 @@
         border-width: 0;
     }
 
+    /* Charts Section */
+    .charts-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin: 2rem 0;
+    }
+
+    .chart-container {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        min-height: 300px;
+        position: relative;
+    }
+
+    .chart-title {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+        color: #1f2937;
+    }
+
+    .chart-title i {
+        margin-right: 10px;
+        font-size: 1.5rem;
+    }
+
+    .chart-title h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    .chart-content {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .chart-bar-row {
+        display: grid;
+        grid-template-columns: 100px 1fr 50px;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .chart-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+        text-transform: capitalize;
+    }
+
+    .chart-bar-container {
+        background: #e5e7eb;
+        height: 28px;
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .chart-bar {
+        height: 100%;
+        border-radius: 8px;
+        transition: width 0.5s ease;
+        position: relative;
+    }
+
+    .chart-bar-submitted {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+
+    .chart-bar-assigned {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    }
+
+    .chart-bar-in_progress {
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    }
+
+    .chart-bar-completed {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .chart-bar-priority-high {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    }
+
+    .chart-bar-priority-medium {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+
+    .chart-bar-priority-low {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .chart-bar-type {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    }
+
+    .chart-value {
+        font-size: 14px;
+        font-weight: 700;
+        color: #1f2937;
+        text-align: right;
+    }
+
+    /* Stat Summary */
+    .stat-summary {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        padding: 1rem 0;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 1rem;
+        background: #f9fafb;
+        border-radius: 8px;
+        border: 2px solid #e5e7eb;
+    }
+
+    .stat-label {
+        font-size: 13px;
+        color: #6b7280;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+    }
+
+    .stat-number {
+        font-size: 28px;
+        font-weight: 800;
+        color: #1f2937;
+    }
+
     /* Responsive design */
     @@media (max-width: 768px) {
         .page-header {
             flex-direction: column;
             align-items: flex-start;
+        }
+
+        .charts-section {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        .chart-container {
+            min-height: auto;
         }
 
         .requests-grid {

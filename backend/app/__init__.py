@@ -91,6 +91,7 @@ def register_blueprints(app):
     from app.controllers.permission_controller import permission_bp
     from app.controllers.role_controller import role_bp
     from app.controllers.tenant_controller import tenant_bp
+    from app.controllers.predictive_controller import predictive_bp
 
     # Register API blueprints
     app.register_blueprint(health_bp)
@@ -102,6 +103,7 @@ def register_blueprints(app):
     app.register_blueprint(feature_flag_bp)
     app.register_blueprint(permission_bp)
     app.register_blueprint(role_bp)
+    app.register_blueprint(predictive_bp)  # Predictive maintenance routes
 
     # Register legacy API blueprint if it exists
     try:

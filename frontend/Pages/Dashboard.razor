@@ -236,6 +236,85 @@
         font-size: 13px;
     }
 
+    /* Predictive Insights Feature Card */
+    .feature-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        padding: 32px;
+        margin: 30px 0;
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 16px rgba(102, 126, 234, 0.25);
+    }
+
+    .feature-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(102, 126, 234, 0.35);
+    }
+
+    .feature-icon {
+        font-size: 64px;
+        line-height: 1;
+    }
+
+    .feature-content {
+        flex: 1;
+        color: white;
+    }
+
+    .feature-content h3 {
+        margin: 0 0 12px 0;
+        font-size: 24px;
+        font-weight: 700;
+        color: white;
+    }
+
+    .feature-content p {
+        margin: 0 0 20px 0;
+        font-size: 15px;
+        line-height: 1.6;
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .feature-stats {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+    }
+
+    .feature-stat {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .feature-stat .stat-label {
+        font-size: 14px;
+        font-weight: 700;
+        color: white;
+    }
+
+    .feature-stat .stat-desc {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    .feature-arrow {
+        font-size: 48px;
+        color: white;
+        font-weight: 300;
+        opacity: 0.8;
+        transition: all 0.3s ease;
+    }
+
+    .feature-card:hover .feature-arrow {
+        opacity: 1;
+        transform: translateX(8px);
+    }
+
     .content-section {
         background: white;
         border-radius: 12px;
@@ -418,6 +497,107 @@
         border-width: 0;
     }
 
+    /* Charts Section */
+    .charts-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin: 2rem 0;
+    }
+
+    .chart-container {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        min-height: 300px;
+        position: relative;
+    }
+
+    .chart-title {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+        color: #1f2937;
+    }
+
+    .chart-title i {
+        margin-right: 10px;
+        font-size: 1.5rem;
+    }
+
+    .chart-title h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    .chart-content {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .chart-bar-row {
+        display: grid;
+        grid-template-columns: 110px 1fr 50px;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .chart-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+        text-transform: capitalize;
+    }
+
+    .chart-bar-container {
+        background: #e5e7eb;
+        height: 28px;
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .chart-bar {
+        height: 100%;
+        border-radius: 8px;
+        transition: width 0.5s ease;
+        position: relative;
+    }
+
+    .chart-bar-submitted {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+
+    .chart-bar-in_progress {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    }
+
+    .chart-bar-completed {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .chart-bar-priority-high {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    }
+
+    .chart-bar-priority-medium {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+
+    .chart-bar-priority-low {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .chart-value {
+        font-size: 14px;
+        font-weight: 700;
+        color: #1f2937;
+        text-align: right;
+    }
+
     /* Responsive design */
     @@media (max-width: 768px) {
         .dashboard-header h1 {
@@ -431,6 +611,42 @@
 
         .stats-grid {
             grid-template-columns: 1fr;
+        }
+
+        .feature-card {
+            flex-direction: column;
+            text-align: center;
+            padding: 24px;
+        }
+
+        .feature-icon {
+            font-size: 48px;
+        }
+
+        .feature-content h3 {
+            font-size: 20px;
+        }
+
+        .feature-stats {
+            justify-content: center;
+        }
+
+        .feature-arrow {
+            font-size: 32px;
+            transform: rotate(90deg);
+        }
+
+        .feature-card:hover .feature-arrow {
+            transform: rotate(90deg) translateX(8px);
+        }
+
+        .charts-section {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        .chart-container {
+            min-height: auto;
         }
 
         .request-item {
@@ -560,6 +776,88 @@
                 <div class="stat-title">Completed</div>
                 <div class="stat-value">@completedRequests</div>
                 <div class="stat-description">Successfully completed</div>
+            </div>
+        </div>
+
+        <!-- Predictive Insights Feature Card -->
+        <div class="feature-card predictive-feature" @onclick="@(() => Navigation.NavigateTo("/predictive"))">
+            <div class="feature-icon">🔮</div>
+            <div class="feature-content">
+                <h3>Predictive Maintenance Insights</h3>
+                <p>AI-powered analytics that predict equipment failures before they happen. Get smart recommendations, asset health scores, and automated maintenance scheduling.</p>
+                <div class="feature-stats">
+                    <div class="feature-stat">
+                        <span class="stat-label">Zero Cost</span>
+                        <span class="stat-desc">No AI API fees</span>
+                    </div>
+                    <div class="feature-stat">
+                        <span class="stat-label">Smart Assignment</span>
+                        <span class="stat-desc">Auto technician matching</span>
+                    </div>
+                    <div class="feature-stat">
+                        <span class="stat-label">Risk Scoring</span>
+                        <span class="stat-desc">Multi-factor analysis</span>
+                    </div>
+                </div>
+            </div>
+            <div class="feature-arrow">→</div>
+        </div>
+
+        <!-- Analytics Charts -->
+        <div class="charts-section">
+            <!-- Request Status Distribution -->
+            <div class="chart-container">
+                <div class="chart-title">
+                    <i>📊</i>
+                    <h3>Request Status Distribution</h3>
+                </div>
+                <div class="chart-content">
+                    @{
+                        var statusGroups = new[] {
+                            new { Status = "Submitted", Count = pendingRequests, Color = "submitted" },
+                            new { Status = "In Progress", Count = inProgressRequests, Color = "in_progress" },
+                            new { Status = "Completed", Count = completedRequests, Color = "completed" }
+                        };
+                        var maxStatusCount = statusGroups.Max(g => g.Count);
+                        if (maxStatusCount == 0) maxStatusCount = 1;
+                    }
+                    @foreach (var group in statusGroups)
+                    {
+                        var percentage = (group.Count * 100.0 / maxStatusCount);
+                        <div class="chart-bar-row">
+                            <span class="chart-label">@group.Status</span>
+                            <div class="chart-bar-container">
+                                <div class="chart-bar chart-bar-@group.Color" style="width: @percentage%"></div>
+                            </div>
+                            <span class="chart-value">@group.Count</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Request Priority Breakdown -->
+            <div class="chart-container">
+                <div class="chart-title">
+                    <i>🔥</i>
+                    <h3>Priority Breakdown</h3>
+                </div>
+                <div class="chart-content">
+                    @{
+                        var priorityGroups = requests.GroupBy(r => r.Priority).Select(g => new { Priority = g.Key, Count = g.Count() }).OrderBy(x => x.Priority);
+                        var maxPriorityCount = priorityGroups.Any() ? priorityGroups.Max(g => g.Count) : 1;
+                    }
+                    @foreach (var group in priorityGroups)
+                    {
+                        var percentage = maxPriorityCount > 0 ? (group.Count * 100.0 / maxPriorityCount) : 0;
+                        <div class="chart-bar-row">
+                            <span class="chart-label">@group.Priority</span>
+                            <div class="chart-bar-container">
+                                <div class="chart-bar chart-bar-priority-@group.Priority" style="width: @percentage%"></div>
+                            </div>
+                            <span class="chart-value">@group.Count</span>
+                        </div>
+                    }
+                </div>
             </div>
         </div>
 

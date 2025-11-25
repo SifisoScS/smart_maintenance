@@ -1,0 +1,149 @@
+@page "/features"
+
+<PageTitle>Features - Smart Maintenance</PageTitle>
+
+<div class="features-page">
+    <div class="page-header">
+        <h1>🚀 Platform Features</h1>
+        <p class="subtitle">Comprehensive maintenance management tools for modern organizations</p>
+    </div>
+
+    <div class="features-container">
+        <div class="feature-section">
+            <div class="feature-icon">⚡</div>
+            <h2>Real-Time Tracking</h2>
+            <p>Monitor all maintenance requests in real-time with instant status updates and notifications</p>
+        </div>
+
+        <div class="feature-section">
+            <div class="feature-icon">👥</div>
+            <h2>Multi-Tenant Architecture</h2>
+            <p>Secure data isolation with separate workspaces for each organization and plan-based limits</p>
+        </div>
+
+        <div class="feature-section">
+            <div class="feature-icon">🔐</div>
+            <h2>Role-Based Access Control</h2>
+            <p>Fine-grained permissions system with customizable roles for admins, technicians, and clients</p>
+        </div>
+
+        <div class="feature-section">
+            <div class="feature-icon">📊</div>
+            <h2>Statistics Dashboard</h2>
+            <p>Real-time overview of maintenance requests, status tracking, and workload distribution across your team</p>
+        </div>
+
+        <div class="feature-section">
+            <div class="feature-icon">🔧</div>
+            <h2>Asset Management</h2>
+            <p>Track and manage all your assets with maintenance history and condition monitoring</p>
+        </div>
+
+        <div class="feature-section">
+            <div class="feature-icon">📱</div>
+            <h2>Mobile Responsive</h2>
+            <p>Access your maintenance system from any device with our responsive Blazor WebAssembly interface</p>
+        </div>
+
+        <div class="feature-section">
+            <div class="feature-icon">🎨</div>
+            <h2>Custom Branding</h2>
+            <p>Personalize your workspace with custom logos, colors, and organization settings</p>
+        </div>
+
+        <div class="feature-section">
+            <div class="feature-icon">📈</div>
+            <h2>Scalable Plans</h2>
+            <p>Flexible subscription plans from free trial to enterprise with unlimited resources</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary: #1a365d;
+        --secondary: #2d3748;
+        --accent: #3182ce;
+        --light: #f7fafc;
+        --dark: #2d3748;
+        --success: #38a169;
+        --warning: #d69e2e;
+        --danger: #e53e3e;
+        --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --transition: all 0.3s ease;
+    }
+
+    .features-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 60px 20px;
+        background-color: var(--light);
+        min-height: 100vh;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 60px;
+    }
+
+    .page-header h1 {
+        font-size: 48px;
+        font-weight: 800;
+        color: var(--primary);
+        margin-bottom: 16px;
+    }
+
+    .subtitle {
+        font-size: 20px;
+        color: var(--secondary);
+    }
+
+    .features-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+    }
+
+    .feature-section {
+        background: white;
+        padding: 40px;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        transition: var(--transition);
+        border-top: 4px solid var(--accent);
+    }
+
+    .feature-section:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(49, 130, 206, 0.2);
+        border-top-color: var(--primary);
+    }
+
+    .feature-icon {
+        font-size: 48px;
+        margin-bottom: 20px;
+    }
+
+    .feature-section h2 {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 12px;
+    }
+
+    .feature-section p {
+        font-size: 16px;
+        color: var(--secondary);
+        line-height: 1.6;
+    }
+
+    @@media (max-width: 768px) {
+        .page-header h1 {
+            font-size: 36px;
+        }
+
+        .features-container {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

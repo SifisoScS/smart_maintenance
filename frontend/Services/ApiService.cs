@@ -1409,5 +1409,133 @@ namespace frontend.Services
             public int Total { get; set; }
             public List<SmartMaintenance.Blazor.Models.TenantModel> Tenants { get; set; } = new List<SmartMaintenance.Blazor.Models.TenantModel>();
         }
+
+        // ============ Predictive Maintenance Methods ============
+
+        /// <summary>
+        /// Get comprehensive predictive maintenance insights
+        /// </summary>
+        public async Task<PredictiveInsightsModel> GetPredictiveInsightsAsync()
+        {
+            await SetAuthHeaderAsync();
+            var response = await _httpClient.GetFromJsonAsync<PredictiveApiResponse>("/api/v1/predictive/insights");
+            return response?.Data ?? new PredictiveInsightsModel();
+        }
+
+        /// <summary>
+        /// Get health analysis for a specific asset
+        /// </summary>
+        public async Task<AssetHealthModel> GetAssetHealthAsync(int assetId)
+        {
+            await SetAuthHeaderAsync();
+            var response = await _httpClient.GetFromJsonAsync<AssetHealthApiResponse>($"/api/v1/predictive/health/asset/{assetId}");
+            return response?.Data ?? new AssetHealthModel();
+        }
+
+        /// <summary>
+        /// Get health analysis for all assets
+        /// </summary>
+        public async Task<List<AssetHealthModel>> GetAllAssetsHealthAsync()
+        {
+            await SetAuthHeaderAsync();
+            var response = await _httpClient.GetFromJsonAsync<AssetHealthListApiResponse>("/api/v1/predictive/health/all");
+            return response?.Data ?? new List<AssetHealthModel>();
+        }
+
+        /// <summary>
+        /// Get critical assets requiring attention
+        /// </summary>
+        public async Task<List<AssetHealthModel>> GetCriticalAssetsAsync()
+        {
+            await SetAuthHeaderAsync();
+            var response = await _httpClient.GetFromJsonAsync<AssetHealthListApiResponse>("/api/v1/predictive/health/critical");
+            return response?.Data ?? new List<AssetHealthModel>();
+        }
+
+        /// <summary>
+        /// Get maintenance schedule recommendations
+        /// </summary>
+        public async Task<List<MaintenanceScheduleModel>> GetMaintenanceScheduleAsync(int daysAhead = 30)
+        {
+            await SetAuthHeaderAsync();
+            var response = await _httpClient.GetFromJsonAsync<ScheduleApiResponse>($"/api/v1/predictive/schedule?days_ahead={daysAhead}");
+            return response?.Data ?? new List<MaintenanceScheduleModel>();
+        }
+
+        /// <summary>
+        /// Get technician workload distribution (admin only)
+        /// </summary>
+        public async Task<List<WorkloadModel>> GetTechnicianWorkloadAsync()
+        {
+            await SetAuthHeaderAsync();
+            var response = await _httpClient.GetFromJsonAsync<WorkloadApiResponse>("/api/v1/predictive/assignment/workload");
+            return response?.Data ?? new List<WorkloadModel>();
+        }
+
+        /// <summary>
+        /// Auto-assign a maintenance request to best technician (admin only)
+        /// </summary>
+        public async Task<AssignmentResultModel> AutoAssignRequestAsync(int requestId)
+        {
+            await SetAuthHeaderAsync();
+            var response = await _httpClient.PostAsync($"/api/v1/predictive/assignment/auto/{requestId}", null);
+            var result = await response.Content.ReadFromJsonAsync<AssignmentApiResponse>();
+            return result?.Data ?? new AssignmentResultModel();
+        }
+
+        /// <summary>
+        /// Create preventive maintenance request
+        /// </summary>
+        public async Task<ApiResponse> CreatePreventiveMaintenanceAsync(int assetId, bool autoAssign = true)
+        {
+            await SetAuthHeaderAsync();
+            var payload = new { asset_id = assetId, auto_assign = autoAssign };
+            var response = await _httpClient.PostAsJsonAsync("/api/v1/predictive/schedule/create", payload);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<ApiResponse>();
+                return result ?? new ApiResponse { Success = false, Message = "Unknown error" };
+            }
+
+            return new ApiResponse { Success = false, Message = "Failed to create preventive maintenance" };
+        }
+
+        // Helper classes for predictive API responses
+        private class PredictiveApiResponse
+        {
+            public bool Success { get; set; }
+            public PredictiveInsightsModel? Data { get; set; }
+        }
+
+        private class AssetHealthApiResponse
+        {
+            public bool Success { get; set; }
+            public AssetHealthModel? Data { get; set; }
+        }
+
+        private class AssetHealthListApiResponse
+        {
+            public bool Success { get; set; }
+            public List<AssetHealthModel>? Data { get; set; }
+        }
+
+        private class ScheduleApiResponse
+        {
+            public bool Success { get; set; }
+            public List<MaintenanceScheduleModel>? Data { get; set; }
+        }
+
+        private class WorkloadApiResponse
+        {
+            public bool Success { get; set; }
+            public List<WorkloadModel>? Data { get; set; }
+        }
+
+        private class AssignmentApiResponse
+        {
+            public bool Success { get; set; }
+            public AssignmentResultModel? Data { get; set; }
+        }
     }
 }

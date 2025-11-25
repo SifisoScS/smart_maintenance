@@ -28,6 +28,114 @@
     }
     else
     {
+        <!-- Analytics Dashboard -->
+        <div class="charts-section">
+            <!-- Asset Condition Chart -->
+            <div class="chart-container">
+                <div class="chart-title">
+                    <i>📊</i>
+                    <h3>Asset Condition Distribution</h3>
+                </div>
+                <div class="chart-content">
+                    @{
+                        var conditionGroups = assets.GroupBy(a => a.Condition).Select(g => new { Condition = g.Key, Count = g.Count() }).OrderBy(x => x.Condition);
+                        var maxConditionCount = conditionGroups.Any() ? conditionGroups.Max(g => g.Count) : 1;
+                    }
+                    @foreach (var group in conditionGroups)
+                    {
+                        var percentage = maxConditionCount > 0 ? (group.Count * 100.0 / maxConditionCount) : 0;
+                        var colorClass = GetConditionColor(group.Condition);
+                        <div class="chart-bar-row">
+                            <span class="chart-label">@group.Condition</span>
+                            <div class="chart-bar-container">
+                                <div class="chart-bar chart-bar-@colorClass" style="width: @percentage%"></div>
+                            </div>
+                            <span class="chart-value">@group.Count</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Asset Status Chart -->
+            <div class="chart-container">
+                <div class="chart-title">
+                    <i>🔄</i>
+                    <h3>Asset Status Overview</h3>
+                </div>
+                <div class="chart-content">
+                    @{
+                        var statusGroups = assets.GroupBy(a => a.Status).Select(g => new { Status = g.Key, Count = g.Count() }).OrderBy(x => x.Status);
+                        var maxStatusCount = statusGroups.Any() ? statusGroups.Max(g => g.Count) : 1;
+                    }
+                    @foreach (var group in statusGroups)
+                    {
+                        var percentage = maxStatusCount > 0 ? (group.Count * 100.0 / maxStatusCount) : 0;
+                        var colorClass = GetStatusColor(group.Status);
+                        <div class="chart-bar-row">
+                            <span class="chart-label">@group.Status</span>
+                            <div class="chart-bar-container">
+                                <div class="chart-bar chart-bar-@colorClass" style="width: @percentage%"></div>
+                            </div>
+                            <span class="chart-value">@group.Count</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Asset Value Summary -->
+            <div class="chart-container">
+                <div class="chart-title">
+                    <i>💰</i>
+                    <h3>Total Asset Value</h3>
+                </div>
+                <div class="stat-summary">
+                    @{
+                        var totalValue = assets.Where(a => a.PurchasePrice.HasValue).Sum(a => a.PurchasePrice.Value);
+                        var avgValue = assets.Where(a => a.PurchasePrice.HasValue).Any()
+                            ? assets.Where(a => a.PurchasePrice.HasValue).Average(a => a.PurchasePrice.Value)
+                            : 0;
+                    }
+                    <div class="stat-item">
+                        <div class="stat-label">Total Value</div>
+                        <div class="stat-number">$@totalValue.ToString("N2")</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Average Value</div>
+                        <div class="stat-number">$@avgValue.ToString("N2")</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Total Assets</div>
+                        <div class="stat-number">@assets.Count</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Asset Location Distribution -->
+            <div class="chart-container">
+                <div class="chart-title">
+                    <i>📍</i>
+                    <h3>Assets by Location</h3>
+                </div>
+                <div class="chart-content">
+                    @{
+                        var locationGroups = assets.GroupBy(a => a.Location).Select(g => new { Location = g.Key, Count = g.Count() }).OrderByDescending(x => x.Count).Take(5);
+                        var maxLocationCount = locationGroups.Any() ? locationGroups.Max(g => g.Count) : 1;
+                    }
+                    @foreach (var group in locationGroups)
+                    {
+                        var percentage = maxLocationCount > 0 ? (group.Count * 100.0 / maxLocationCount) : 0;
+                        <div class="chart-bar-row">
+                            <span class="chart-label">@group.Location</span>
+                            <div class="chart-bar-container">
+                                <div class="chart-bar chart-bar-primary" style="width: @percentage%"></div>
+                            </div>
+                            <span class="chart-value">@group.Count</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
         <!-- Filters -->
         <div class="filters-card">
             <div class="filter-row">
@@ -478,8 +586,161 @@
         border: 1px solid #fecaca;
     }
 
+    /* Charts Section */
+    .charts-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin: 2rem 0;
+    }
+
+    .chart-container {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        min-height: 350px;
+        position: relative;
+    }
+
+    .chart-title {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+        color: #1f2937;
+    }
+
+    .chart-title i {
+        margin-right: 10px;
+        font-size: 1.5rem;
+    }
+
+    .chart-title h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    .chart-content {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .chart-bar-row {
+        display: grid;
+        grid-template-columns: 100px 1fr 50px;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .chart-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+        text-transform: capitalize;
+    }
+
+    .chart-bar-container {
+        background: #e5e7eb;
+        height: 28px;
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .chart-bar {
+        height: 100%;
+        border-radius: 8px;
+        transition: width 0.5s ease;
+        position: relative;
+    }
+
+    .chart-bar-excellent {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .chart-bar-good {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    }
+
+    .chart-bar-fair {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+
+    .chart-bar-poor {
+        background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    }
+
+    .chart-bar-critical {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    }
+
+    .chart-bar-active {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .chart-bar-maintenance {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+
+    .chart-bar-retired {
+        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    }
+
+    .chart-bar-primary {
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    }
+
+    .chart-value {
+        font-size: 14px;
+        font-weight: 700;
+        color: #1f2937;
+        text-align: right;
+    }
+
+    /* Stat Summary */
+    .stat-summary {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        padding: 1rem 0;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 1rem;
+        background: #f9fafb;
+        border-radius: 8px;
+        border: 2px solid #e5e7eb;
+    }
+
+    .stat-label {
+        font-size: 13px;
+        color: #6b7280;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+    }
+
+    .stat-number {
+        font-size: 28px;
+        font-weight: 800;
+        color: #1f2937;
+    }
+
     /* Responsive */
     @@media (max-width: 768px) {
+        .charts-section {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        .chart-container {
+            min-height: auto;
+        }
+
         .assets-grid {
             grid-template-columns: 1fr;
         }

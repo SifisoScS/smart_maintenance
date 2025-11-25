@@ -27,6 +27,28 @@
         <a class="dismiss">🗙</a>
     </div>
     <script src="js/tenant-branding.js"></script>
+    <script>
+        // DateTime Updater
+        window.startDateTimeUpdater = function() {
+            setInterval(function() {
+                const now = new Date();
+                const options = {
+                    year: 'numeric',
+                    month: 'short',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                };
+                const formatted = now.toLocaleString('en-US', options);
+                const element = document.getElementById('currentDateTime');
+                if (element) {
+                    element.textContent = formatted;
+                }
+            }, 1000);
+        };
+    </script>
     <script src="_framework/blazor.webassembly.js"></script>
 </body>
 
